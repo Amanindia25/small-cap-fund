@@ -1,0 +1,82 @@
+[
+  {
+    "schemeName": "Invesco India Smallcap Fund - Direct - Growth",
+    "crisilRating": 4,
+    "portfolio": {
+      "turnoverRatio": 52,
+      "equityHolding": 97.56,
+      "numberOfStocks": 69,
+      "debtHolding": 2.44,
+      "numberOfDebtHoldings": 69
+    },
+    "planType": "Direct Plan",
+    "isSponsored": false
+  },
+  {
+    "schemeName": "PGIM India Small Cap Fund -",
+    "crisilRating": 2,
+    "portfolio": {
+      "turnoverRatio": 49,
+      "equityHolding": 97.2,
+      "numberOfStocks": 62,
+      "debtHolding": 0.41,
+      "numberOfDebtHoldings": 62,
+      "cashHolding": 2.39
+    },
+    "planType": "Direct Plan",
+    "isSponsored": false
+  },
+  {
+    "schemeName": "Nippon India Small Cap Fund -",
+    "crisilRating": 4,
+    "portfolio": {
+      "turnoverRatio": 12,
+      "equityHolding": 95.76,
+      "numberOfStocks": 237,
+      "debtHolding": 4.24,
+      "numberOfDebtHoldings": 237
+    },
+    "planType": "Direct Plan",
+    "isSponsored": false
+  },
+  {
+    "schemeName": "Franklin India Small Cap Fund - Direct - Growth",
+    "crisilRating": 3,
+    "portfolio": {
+      "turnoverRatio": 23,
+      "equityHolding": 94.31,
+      "numberOfStocks": 97,
+      "debtHolding": 0.18,
+      "numberOfDebtHoldings": 97,
+      "cashHolding": 5.51
+    },
+    "planType": "Direct Plan",
+    "isSponsored": false
+  },
+  {
+    "schemeName": "Bank of India Small Cap Fund -",
+    "crisilRating": 3,
+    "portfolio": {
+      "turnoverRatio": 44,
+      "equityHolding": 93.24,
+      "numberOfStocks": 75,
+      "debtHolding": 0.4,
+      "numberOfDebtHoldings": 75,
+      "cashHolding": 6.36
+    },
+    "planType": "Direct Plan",
+    "isSponsored": false
+  },
+  {
+    "schemeName": "PGIM India Small Cap Fund -",
+    "crisilRating": 2,
+    "portfolio": {
+      "turnoverRatio": 49.43,
+      "equityHolding": 50.57,
+      "numberOfStocks": 28,
+      "numberOfDebtHoldings": 28
+    },
+    "planType": "Direct Plan",
+    "isSponsored": false
+  }
+]
