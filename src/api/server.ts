@@ -164,6 +164,47 @@ app.get('/api/funds/:id/changes', async (req, res) => {
   }
 });
 
+// Daily changes endpoint - compare today vs yesterday
+app.get('/api/funds/:id/daily-changes', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const changes = await portfolioChangeService.getDailyChanges(id);
+    res.json({
+      success: true,
+      data: changes,
+      count: changes.length
+    });
+  } catch (error) {
+    console.error('Error fetching daily changes:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch daily changes'
+    });
+  }
+});
+
+// Compare two dates (or latest two snapshots if no dates provided)
+app.get('/api/funds/:id/compare-snapshots', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { from, to } = req.query as { from?: string; to?: string };
+    const fromDate = from ? new Date(from) : undefined;
+    const toDate = to ? new Date(to) : undefined;
+    const changes = await portfolioChangeService.compareSnapshots(id, fromDate, toDate);
+    res.json({
+      success: true,
+      data: changes,
+      count: changes.length
+    });
+  } catch (error) {
+    console.error('Error comparing snapshots:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to compare snapshots'
+    });
+  }
+});
+
 app.get('/api/changes/significant', async (req, res) => {
   try {
     const { days = 7 } = req.query;
@@ -265,7 +306,9 @@ app.post('/api/admin/trigger-changes', async (req, res) => {
 
 app.post('/api/admin/trigger-scraping', async (req, res) => {
   try {
-    await dailyScheduler.triggerDailyScraping();
+    // If SHOW_BROWSER=true, run scraper with visible browser for this manual trigger
+    const showBrowser = req.query.showBrowser === 'true' || process.env.SHOW_BROWSER === 'true';
+    await dailyScheduler.runDailyScraping({ showBrowser });
     res.json({
       success: true,
       message: 'Daily scraping triggered successfully'

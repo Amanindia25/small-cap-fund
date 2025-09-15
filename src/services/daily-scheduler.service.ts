@@ -24,7 +24,9 @@ export class DailySchedulerService {
     // Run full scraping every day at 10 AM
     cron.schedule('0 10 * * *', async () => {
       console.log('🔄 Starting daily scraping...');
-      await this.runDailyScraping();
+      // In headless servers this should remain headless; for local demo, set env
+      const showBrowser = process.env.SHOW_BROWSER === 'true';
+      await this.runDailyScraping({ showBrowser });
     });
 
     // Run incremental update every day at 10:30 AM
@@ -71,9 +73,9 @@ export class DailySchedulerService {
     }
   }
 
-  private async runDailyScraping() {
+  async runDailyScraping(options?: { showBrowser?: boolean }) {
     try {
-      const result = await this.dailyScraper.runDailyScraping();
+      const result = await this.dailyScraper.runDailyScraping(options);
       if (result.success) {
         console.log(`✅ Daily scraping completed: ${result.totalFunds} funds, ${result.updatedFunds} updated, ${result.newFunds} new`);
       } else {
@@ -132,9 +134,9 @@ export class DailySchedulerService {
     await this.runDailyChangeDetection();
   }
 
-  async triggerDailyScraping() {
+  async triggerDailyScraping(options?: { showBrowser?: boolean }) {
     console.log('🔄 Manually triggering daily scraping...');
-    await this.runDailyScraping();
+    await this.runDailyScraping(options);
   }
 
   async triggerIncrementalUpdate() {

@@ -121,6 +121,9 @@ export class FundScraperService {
     };
 
     try {
+      // Ensure a browser instance is running before creating pages
+      await this.browserManager.launch();
+
       // Reset scraped funds tracking for new scraping session
       this.scrapedFunds.clear();
       console.log('🔄 Starting new scraping session - cleared scraped funds tracking');
@@ -132,18 +135,23 @@ export class FundScraperService {
       });
       
       // Navigate to the small cap funds page
-      await this.browserManager.navigateToPage(
-        page, 
-        'https://www.moneycontrol.com/mutual-funds/performance-tracker/portfolioassets/small-cap-fund.html'
-      );
+      const smallCapUrl = 'https://www.moneycontrol.com/mutual-funds/performance-tracker/portfolioassets/small-cap-fund.html';
+      await this.browserManager.navigateToPage(page, smallCapUrl);
 
       // Wait for page to fully load
       await this.browserManager.delay(5000);
 
-      // Check if page loaded correctly
+      // Check if page loaded correctly and ensure we stayed on Small Cap list
       const pageTitle = await page.title();
+      const currentUrl = page.url();
       console.log('Page title:', pageTitle);
       
+      if (currentUrl.includes('contra-fund') || !pageTitle.toLowerCase().includes('small cap')) {
+        console.log('⚠️ Detected redirect to wrong category. Navigating back to Small Cap page...');
+        await page.goto(smallCapUrl, { waitUntil: 'domcontentloaded', timeout: this.browserManager['config']?.timeout || 60000 });
+        await this.browserManager.delay(3000);
+      }
+
       if (pageTitle === 'Error' || pageTitle.includes('Error')) {
         console.log('❌ Page shows error, trying to reload...');
         await page.reload({ waitUntil: 'domcontentloaded' });
@@ -263,6 +271,8 @@ export class FundScraperService {
     } catch (error) {
       result.error = error instanceof Error ? error.message : 'Unknown error occurred';
       console.error('Scraping failed:', result.error);
+    } finally {
+      // Keep browser open; lifecycle is managed by the caller (see index.ts)
     }
 
     return result;
@@ -622,6 +632,14 @@ export class FundScraperService {
               planType = 'Direct Plan';
             }
             
+            // Clean fund name by removing plan type indicators
+            const cleanFundName = fundName
+              .replace(/\s*-\s*direct\s*plan\s*-\s*growth/gi, '')
+              .replace(/\s*-\s*regular\s*plan\s*-\s*growth/gi, '')
+              .replace(/\s*-\s*direct\s*-\s*growth/gi, '')
+              .replace(/\s*-\s*growth/gi, '')
+              .trim();
+            
             // Create a unique fund identifier that includes plan type
             const fundIdentifier = `${fundName} (${planType})`;
             
@@ -723,7 +741,7 @@ export class FundScraperService {
             }
             
             const fund: FundData = {
-              schemeName: fundName,
+              schemeName: cleanFundName,
               crisilRating: crisilRating,
               portfolio: {
                 turnoverRatio: turnoverRatio,
@@ -768,18 +786,17 @@ export class FundScraperService {
 
   async scrapeIndividualHoldings(fundName: string, page: Page): Promise<{ holdings: StockHolding[], portfolioSummary?: PortfolioSummary, returns?: ReturnsData, riskRatios?: RiskRatios }> {
     try {
-      // Create unique fund identifier (base name without plan type for deduplication)
-      const baseFundName = fundName.replace(/\s*\(.*?\)$/, '').trim();
+      // Use full identifier including plan type to allow scraping both Direct and Regular
+      const fundKey = fundName.trim();
       
-      // Check if this fund has already been scraped
-      if (this.scrapedFunds.has(baseFundName)) {
-        console.log(`\n⏭️ ===== SKIPPING ALREADY SCRAPED FUND: ${baseFundName} =====`);
-        console.log(`ℹ️ This fund has already been processed, skipping to avoid duplicates`);
+      // Check if this specific plan has already been scraped
+      if (this.scrapedFunds.has(fundKey)) {
+        console.log(`\n⏭️ ===== SKIPPING ALREADY SCRAPED FUND PLAN: ${fundKey} =====`);
         return { holdings: [] };
       }
       
-      // Mark this fund as being scraped
-      this.scrapedFunds.add(baseFundName);
+      // Mark this fund plan as being scraped
+      this.scrapedFunds.add(fundKey);
       
       console.log(`\n🔍 ===== STARTING ENHANCED SCRAPING FOR: ${fundName} =====`);
       console.log(`📊 Step 1: Locating fund link on the main list page...`);

@@ -115,6 +115,19 @@ export class MongoDBService {
       let holdings: IHolding[] = [];
       if (fundData.individualHoldings && fundData.individualHoldings.length > 0) {
         holdings = await this.saveHoldings((fund._id as mongoose.Types.ObjectId).toString(), fundData.individualHoldings);
+        
+        // Update the fund document to include individualHoldings
+        await Fund.findByIdAndUpdate(fund._id, {
+          $set: {
+            individualHoldings: fundData.individualHoldings,
+            portfolioSummary: fundData.portfolioSummary,
+            returns: fundData.returns,
+            riskRatios: fundData.riskRatios,
+            updatedAt: new Date()
+          }
+        });
+        
+        console.log(`✅ Updated fund document with ${fundData.individualHoldings.length} holdings`);
       }
 
       return { fund, holdings };

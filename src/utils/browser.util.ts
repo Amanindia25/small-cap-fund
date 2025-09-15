@@ -10,6 +10,11 @@ export class BrowserManager {
   }
 
   async launch(): Promise<Browser> {
+    // Reuse existing browser if already launched
+    if (this.browser) {
+      return this.browser;
+    }
+
     this.browser = await puppeteer.launch({
       headless: this.config.headless,
       args: [
@@ -25,6 +30,7 @@ export class BrowserManager {
         '--user-agent=' + this.config.userAgent
       ]
     });
+
     return this.browser;
   }
 
@@ -33,18 +39,36 @@ export class BrowserManager {
       throw new Error('Browser not launched. Call launch() first.');
     }
 
-    const page = await this.browser.newPage();
-    
-    // Set user agent
-    await page.setUserAgent(this.config.userAgent);
-    
-    // Set viewport
-    await page.setViewport({ width: 1920, height: 1080 });
-    
-    // Set timeout
-    page.setDefaultTimeout(this.config.timeout);
-    
-    return page;
+    const tryCreate = async (): Promise<Page> => {
+      const page = await this.browser!.newPage();
+      await page.setUserAgent(this.config.userAgent);
+      await page.setViewport({ width: 1920, height: 1080 });
+      page.setDefaultTimeout(this.config.timeout);
+      return page;
+    };
+
+    const maxAttempts = 3;
+    let lastError: unknown = null;
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        return await tryCreate();
+      } catch (error) {
+        lastError = error;
+        console.log(`⚠️ createPage attempt ${attempt} failed, retrying...`, (error as Error).message);
+        await this.delay(1000);
+        // On final retry, try relaunching browser
+        if (attempt === maxAttempts) {
+          try {
+            await this.close();
+            await this.launch();
+            return await tryCreate();
+          } catch (relaunchErr) {
+            lastError = relaunchErr;
+          }
+        }
+      }
+    }
+    throw lastError instanceof Error ? lastError : new Error('Failed to create page');
   }
 
   async navigateToPage(page: Page, url: string): Promise<void> {

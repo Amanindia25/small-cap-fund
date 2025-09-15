@@ -141,7 +141,7 @@ const RiskRatiosSchema = new Schema<IRiskRatios>({
 });
 
 const FundSchema = new Schema<IFund>({
-  name: { type: String, required: true, unique: true },
+  name: { type: String, required: true },
   amc: { type: String, required: true },
   category: { type: String, required: true, default: 'small-cap' },
   subCategory: { type: String, required: true },
@@ -173,7 +173,7 @@ const FundSchema = new Schema<IFund>({
 });
 
 // Create index for faster queries
-FundSchema.index({ name: 1 });
+FundSchema.index({ name: 1, planType: 1 }, { unique: true }); // Unique combination of name + planType
 FundSchema.index({ amc: 1 });
 FundSchema.index({ category: 1 });
 
