@@ -1,4 +1,3 @@
-
 {
   "name": "small-cap-fund-scraper",
   "version": "1.0.0",
@@ -7,7 +6,9 @@
   "scripts": {
     "build": "tsc",
     "start": "node dist/index.js",
-    "dev": "ts-node src/index.ts",
+    "dev:api": "ts-node src/api/server.ts",
+    "dev:scrape": "wait-on http://localhost:5000/api/health && ts-node src/index.ts",
+    "dev": "concurrently -n api,scraper -c blue,magenta \"npm:dev:api\" \"npm:dev:scrape\"",
     "scrape": "npm run build && npm start",
     "test-mongo": "ts-node test-enhanced-scraper.ts",
     "test-logging": "ts-node test-enhanced-logging.ts",
@@ -35,8 +36,10 @@
     "@types/express": "^5.0.3",
     "@types/lodash": "^4.17.20",
     "@types/node": "^20.8.0",
+    "concurrently": "^9.2.1",
     "ts-node": "^10.9.1",
-    "typescript": "^5.2.2"
+    "typescript": "^5.2.2",
+    "wait-on": "^8.0.5"
   },
   "keywords": [
     "scraping",
