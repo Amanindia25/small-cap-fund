@@ -5,7 +5,7 @@ import { MongoDBService } from './mongodb.service';
 import { DailyScraperService } from './daily-scraper.service';
 import { HistoricalDataService } from './historical-data.service';
 
-export class DailySchedulerService {
+export class TestSchedulerService {
   private portfolioChangeService: PortfolioChangeService;
   private mongoService: MongoDBService;
   private dailyScraper: DailyScraperService;
@@ -18,8 +18,28 @@ export class DailySchedulerService {
     this.historicalDataService = new HistoricalDataService();
   }
 
+  // For testing - run every hour
+  startHourlyTestTasks() {
+    console.log('🧪 Starting HOURLY test scheduler tasks...');
+
+    // Run portfolio analysis every hour for testing
+    cron.schedule('0 * * * *', async () => {
+      console.log('🔄 [TEST] Starting hourly portfolio analysis...');
+      await this.runPortfolioAnalysis();
+    });
+
+    // Run change detection every 30 minutes for testing
+    cron.schedule('*/30 * * * *', async () => {
+      console.log('🔍 [TEST] Starting hourly change detection...');
+      await this.runChangeDetection();
+    });
+
+    console.log('✅ Hourly test scheduler tasks configured');
+  }
+
+  // For production - run daily
   startDailyTasks() {
-    console.log('🕐 Starting daily scheduler tasks...');
+    console.log('🕐 Starting DAILY scheduler tasks...');
 
     // Run full scraping every day at 10 AM
     cron.schedule('0 10 * * *', async () => {
@@ -36,15 +56,15 @@ export class DailySchedulerService {
     // Run portfolio analysis every day at 11 AM
     cron.schedule('0 11 * * *', async () => {
       console.log('📊 Starting daily portfolio analysis...');
-      await this.runDailyPortfolioAnalysis();
+      await this.runPortfolioAnalysis();
     });
 
     console.log('✅ Daily scheduler tasks configured');
   }
 
-  private async runDailyPortfolioAnalysis() {
+  private async runPortfolioAnalysis() {
     try {
-      console.log('📈 Running daily portfolio analysis...');
+      console.log('📈 Running portfolio analysis...');
       
       // Create daily snapshots for all funds
       await this.historicalDataService.createDailySnapshots();
@@ -65,9 +85,33 @@ export class DailySchedulerService {
         }
       }
 
-      console.log(`✅ Daily portfolio analysis completed - ${totalChanges} total changes detected`);
+      console.log(`✅ Portfolio analysis completed - ${totalChanges} total changes detected`);
     } catch (error) {
-      console.error('❌ Error in daily portfolio analysis:', error);
+      console.error('❌ Error in portfolio analysis:', error);
+    }
+  }
+
+  private async runChangeDetection() {
+    try {
+      const funds = await Fund.find({}) as IFund[];
+      console.log(`🔍 Detecting changes for ${funds.length} funds...`);
+
+      let totalChanges = 0;
+      for (const fund of funds) {
+        try {
+          const changes = await this.portfolioChangeService.detectPortfolioChanges((fund._id as any).toString());
+          totalChanges += changes.length;
+          if (changes.length > 0) {
+            console.log(`📊 Found ${changes.length} changes in ${fund.name}`);
+          }
+        } catch (error) {
+          console.error(`❌ Error detecting changes for ${fund.name}:`, error);
+        }
+      }
+
+      console.log(`✅ Change detection completed. Total changes: ${totalChanges}`);
+    } catch (error) {
+      console.error('❌ Error in change detection:', error);
     }
   }
 
@@ -97,39 +141,15 @@ export class DailySchedulerService {
     }
   }
 
-  private async runDailyChangeDetection() {
-    try {
-      const funds = await Fund.find({}) as IFund[];
-      console.log(`🔍 Detecting changes for ${funds.length} funds...`);
-
-      let totalChanges = 0;
-      for (const fund of funds) {
-        try {
-          const changes = await this.portfolioChangeService.detectPortfolioChanges((fund._id as any).toString());
-          totalChanges += changes.length;
-          if (changes.length > 0) {
-            console.log(`📊 Found ${changes.length} changes in ${fund.name}`);
-          }
-        } catch (error) {
-          console.error(`❌ Error detecting changes for ${fund.name}:`, error);
-        }
-      }
-
-      console.log(`✅ Daily change detection completed. Total changes: ${totalChanges}`);
-    } catch (error) {
-      console.error('❌ Error in daily change detection:', error);
-    }
-  }
-
   // Manual trigger methods for testing
   async triggerPortfolioAnalysis() {
     console.log('🔄 Manually triggering portfolio analysis...');
-    await this.runDailyPortfolioAnalysis();
+    await this.runPortfolioAnalysis();
   }
 
   async triggerChangeDetection() {
     console.log('🔄 Manually triggering change detection...');
-    await this.runDailyChangeDetection();
+    await this.runChangeDetection();
   }
 
   async triggerDailyScraping() {

@@ -110,3 +110,4 @@ app.listen(PORT, () => {
   console.log(`   GET /api/funds/compare/:fund1/:fund2 - Compare two funds`);
   console.log(`   GET /api/health - Health check`);
 });
+

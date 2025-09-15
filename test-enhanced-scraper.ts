@@ -1,18 +1,29 @@
 import { BrowserManager } from './src/utils/browser.util';
 import { FundScraperService } from './src/services/fund-scraper.service';
 import { MongoDBService } from './src/services/mongodb.service';
+import { ScrapingConfig } from './src/types/fund.types';
+import { connectDB } from './src/config/database';
 
 async function testEnhancedScraper() {
   console.log('🚀 Starting Enhanced Scraper Test...');
   
-  const browserManager = new BrowserManager();
+  // Create proper config for BrowserManager
+  const config: ScrapingConfig = {
+    url: 'https://www.moneycontrol.com/mutual-funds/performance-tracker/portfolioassets/small-cap-fund.html',
+    headless: false,
+    timeout: 60000,
+    delay: 1000,
+    userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+  };
+  
+  const browserManager = new BrowserManager(config);
   const scraperService = new FundScraperService(browserManager);
   const mongoService = new MongoDBService();
   
   try {
     // Initialize browser and database
-    await browserManager.initialize();
-    await mongoService.connect();
+    await browserManager.launch();
+    await connectDB();
     
     console.log('✅ Browser and Database initialized');
     
@@ -72,7 +83,9 @@ async function testEnhancedScraper() {
       
       // Save enhanced data to MongoDB
       console.log('\n💾 Saving enhanced data to MongoDB...');
-      await mongoService.saveFunds(result.data);
+      for (const fundData of result.data) {
+        await mongoService.saveFund(fundData);
+      }
       console.log('✅ Enhanced data saved to MongoDB');
       
     } else {
@@ -83,7 +96,6 @@ async function testEnhancedScraper() {
     console.error('❌ Test failed:', error);
   } finally {
     await browserManager.close();
-    await mongoService.disconnect();
     console.log('🏁 Test completed');
   }
 }

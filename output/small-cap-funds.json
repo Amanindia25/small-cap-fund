@@ -1,6 +1,122 @@
 [
   {
-    "schemeName": "Invesco India Smallcap Fund - Direct - Growth",
+    "schemeName": "Invesco India Smallcap Fund",
+    "crisilRating": 4,
+    "portfolio": {
+      "turnoverRatio": 97.82,
+      "equityHolding": 97.82,
+      "numberOfStocks": 69,
+      "debtHolding": 2.18,
+      "numberOfDebtHoldings": 69
+    },
+    "planType": "Regular Plan",
+    "isSponsored": false,
+    "individualHoldings": [
+      {
+        "stockName": "Sai Life Sciences Ltd.",
+        "stockSymbol": "Sai Life S",
+        "percentage": 5.28,
+        "sector": "Petrochemicals",
+        "marketValue": 4076,
+        "quantity": 49.42,
+        "oneMonthChange": 1.15
+      },
+      {
+        "stockName": "Krishna Institute of Medical Sciences Ltd.",
+        "stockSymbol": "Krishna In",
+        "percentage": 4.54,
+        "sector": "Hospital",
+        "marketValue": 3500.7,
+        "quantity": 48.36,
+        "oneMonthChange": 0.48
+      },
+      {
+        "stockName": "J K Lakshmi Cement Ltd.",
+        "stockSymbol": "J K Lakshm",
+        "percentage": 3.47,
+        "sector": "Cement & cement products",
+        "marketValue": 2676.6,
+        "quantity": 29.06,
+        "oneMonthChange": 0.48
+      },
+      {
+        "stockName": "Multi Commodity Exchange Of India Ltd.",
+        "stockSymbol": "Multi Comm",
+        "percentage": 3.3,
+        "sector": "Exchange and data platform",
+        "marketValue": 2548.6,
+        "quantity": 3.45,
+        "oneMonthChange": -0.2
+      },
+      {
+        "stockName": "Swiggy Ltd.",
+        "stockSymbol": "Swiggy Ltd",
+        "percentage": 3.23,
+        "sector": "E-retail/ e-commerce",
+        "marketValue": 2492.5,
+        "quantity": 60.83,
+        "oneMonthChange": -0.01
+      },
+      {
+        "stockName": "InterGlobe Aviation Ltd.",
+        "stockSymbol": "InterGlobe",
+        "percentage": 2.98,
+        "sector": "Airline",
+        "marketValue": 2297.3,
+        "quantity": 4.07,
+        "oneMonthChange": -0.05
+      },
+      {
+        "stockName": "Global Health Ltd.",
+        "stockSymbol": "Global Hea",
+        "percentage": 2.81,
+        "sector": "Hospital",
+        "marketValue": 2169.2,
+        "quantity": 15.79,
+        "oneMonthChange": 0.08
+      },
+      {
+        "stockName": "Delhivery Ltd.",
+        "stockSymbol": "Delhivery ",
+        "percentage": 2.8,
+        "sector": "Logistics solution provider",
+        "marketValue": 2160.7,
+        "quantity": 46.16,
+        "oneMonthChange": 0.73
+      },
+      {
+        "stockName": "Karur Vysya Bank Ltd",
+        "stockSymbol": "Karur Vysy",
+        "percentage": 2.68,
+        "sector": "Private sector bank",
+        "marketValue": 2071.9,
+        "quantity": 96.8,
+        "oneMonthChange": -0.12
+      },
+      {
+        "stockName": "Vishal Mega Mart Ltd.",
+        "stockSymbol": "Vishal Meg",
+        "percentage": 2.51,
+        "sector": "Diversified retail",
+        "marketValue": 1934.8,
+        "quantity": 1.29,
+        "oneMonthChange": 0.13
+      }
+    ],
+    "portfolioSummary": {
+      "equityHolding": 97.82,
+      "numberOfStocks": 69
+    },
+    "returns": {
+      "oneMonth": 12,
+      "threeMonth": 12,
+      "sixMonth": 12,
+      "oneYear": 12,
+      "threeYear": 12
+    }
+  },
+  {
+    "schemeName": "Invesco India Smallcap Fund - Direct",
     "crisilRating": 4,
     "portfolio": {
       "turnoverRatio": 97.82,
@@ -13,94 +129,94 @@
     "isSponsored": false,
     "individualHoldings": [
       {
-        "stockName": "#\n                                                                                        Sai Life Sciences Ltd.",
-        "stockSymbol": "#\n        ",
+        "stockName": "Sai Life Sciences Ltd.",
+        "stockSymbol": "Sai Life S",
         "percentage": 5.28,
         "sector": "Petrochemicals",
         "marketValue": 4076,
         "quantity": 49.42,
-        "oneMonthChange": 0
+        "oneMonthChange": 1.15
       },
       {
-        "stockName": "#\n                                                                                        Krishna Institute of Medical Sciences Ltd.",
-        "stockSymbol": "#\n        ",
+        "stockName": "Krishna Institute of Medical Sciences Ltd.",
+        "stockSymbol": "Krishna In",
         "percentage": 4.54,
         "sector": "Hospital",
         "marketValue": 3500.7,
         "quantity": 48.36,
-        "oneMonthChange": 0
+        "oneMonthChange": 0.48
       },
       {
-        "stockName": "#\n                                                                                        J K Lakshmi Cement Ltd.",
-        "stockSymbol": "#\n        ",
+        "stockName": "J K Lakshmi Cement Ltd.",
+        "stockSymbol": "J K Lakshm",
         "percentage": 3.47,
         "sector": "Cement & cement products",
         "marketValue": 2676.6,
         "quantity": 29.06,
-        "oneMonthChange": 0
+        "oneMonthChange": 0.48
       },
       {
-        "stockName": "#\n                                                                                        Multi Commodity Exchange Of India Ltd.",
-        "stockSymbol": "#\n        ",
+        "stockName": "Multi Commodity Exchange Of India Ltd.",
+        "stockSymbol": "Multi Comm",
         "percentage": 3.3,
         "sector": "Exchange and data platform",
         "marketValue": 2548.6,
         "quantity": 3.45,
-        "oneMonthChange": 0
+        "oneMonthChange": -0.2
       },
       {
-        "stockName": "#\n                                                                                        Swiggy Ltd.",
-        "stockSymbol": "#\n        ",
+        "stockName": "Swiggy Ltd.",
+        "stockSymbol": "Swiggy Ltd",
         "percentage": 3.23,
         "sector": "E-retail/ e-commerce",
         "marketValue": 2492.5,
         "quantity": 60.83,
-        "oneMonthChange": 0
+        "oneMonthChange": -0.01
       },
       {
-        "stockName": "#\n                                                                                        InterGlobe Aviation Ltd.",
-        "stockSymbol": "#\n        ",
+        "stockName": "InterGlobe Aviation Ltd.",
+        "stockSymbol": "InterGlobe",
         "percentage": 2.98,
         "sector": "Airline",
         "marketValue": 2297.3,
         "quantity": 4.07,
-        "oneMonthChange": 0
+        "oneMonthChange": -0.05
       },
       {
-        "stockName": "#\n                                                                                        Global Health Ltd.",
-        "stockSymbol": "#\n        ",
+        "stockName": "Global Health Ltd.",
+        "stockSymbol": "Global Hea",
         "percentage": 2.81,
         "sector": "Hospital",
         "marketValue": 2169.2,
         "quantity": 15.79,
-        "oneMonthChange": 0
+        "oneMonthChange": 0.08
       },
       {
-        "stockName": "#\n                                                                                        Delhivery Ltd.",
-        "stockSymbol": "#\n        ",
+        "stockName": "Delhivery Ltd.",
+        "stockSymbol": "Delhivery ",
         "percentage": 2.8,
         "sector": "Logistics solution provider",
         "marketValue": 2160.7,
         "quantity": 46.16,
-        "oneMonthChange": 0
+        "oneMonthChange": 0.73
       },
       {
-        "stockName": "#\n                                                                                        Karur Vysya Bank Ltd",
-        "stockSymbol": "#\n        ",
+        "stockName": "Karur Vysya Bank Ltd",
+        "stockSymbol": "Karur Vysy",
         "percentage": 2.68,
         "sector": "Private sector bank",
         "marketValue": 2071.9,
         "quantity": 96.8,
-        "oneMonthChange": 0
+        "oneMonthChange": -0.12
       },
       {
-        "stockName": "#\n                                                                                        Vishal Mega Mart Ltd.",
-        "stockSymbol": "#\n        ",
+        "stockName": "Vishal Mega Mart Ltd.",
+        "stockSymbol": "Vishal Meg",
         "percentage": 2.51,
         "sector": "Diversified retail",
         "marketValue": 1934.8,
         "quantity": 1.29,
-        "oneMonthChange": 0
+        "oneMonthChange": 0.13
       }
     ],
     "portfolioSummary": {
@@ -108,23 +224,23 @@
       "numberOfStocks": 69
     },
     "returns": {
-      "oneMonth": 8,
-      "threeMonth": 10,
-      "sixMonth": 10,
-      "oneYear": 10,
-      "threeYear": 9
+      "oneMonth": 12,
+      "threeMonth": 12,
+      "sixMonth": 12,
+      "oneYear": 12,
+      "threeYear": 12
     }
   },
   {
-    "schemeName": "PGIM India Small Cap Fund -",
+    "schemeName": "PGIM India",
     "crisilRating": 2,
     "portfolio": {
-      "turnoverRatio": 49,
-      "equityHolding": 97.2,
+      "turnoverRatio": 97.17,
+      "equityHolding": 97.17,
       "numberOfStocks": 62,
       "debtHolding": 0.41,
       "numberOfDebtHoldings": 62,
-      "cashHolding": 2.39
+      "cashHolding": 2.42
     },
     "planType": "Direct Plan",
     "isSponsored": false,
@@ -132,458 +248,530 @@
       {
         "stockName": "Multi Commodity Exchange Of India Ltd.",
         "stockSymbol": "Multi Comm",
-        "percentage": 3.52,
+        "percentage": 3.43,
         "sector": "Exchange and data platform",
-        "marketValue": 556.4,
+        "marketValue": 534.5,
         "quantity": 72.33,
-        "oneMonthChange": -0.91
+        "oneMonthChange": -0.09
       },
       {
         "stockName": "Krishna Institute of Medical Sciences Ltd.",
         "stockSymbol": "Krishna In",
-        "percentage": 3.21,
+        "percentage": 3.15,
         "sector": "Hospital",
-        "marketValue": 508.8,
+        "marketValue": 490.3,
         "quantity": 6.77,
-        "oneMonthChange": 0.29
+        "oneMonthChange": -0.06
       },
       {
         "stockName": "Solar Industries India Ltd.",
         "stockSymbol": "Solar Indu",
-        "percentage": 2.91,
+        "percentage": 2.87,
         "sector": "Explosives",
-        "marketValue": 460.4,
+        "marketValue": 446.6,
         "quantity": 32.38,
-        "oneMonthChange": -1.14
+        "oneMonthChange": -0.04
       },
       {
         "stockName": "Affle India Ltd.",
         "stockSymbol": "Affle Indi",
-        "percentage": 2.72,
+        "percentage": 2.69,
         "sector": "It enabled services",
-        "marketValue": 430.5,
+        "marketValue": 419.5,
         "quantity": 2.2,
-        "oneMonthChange": -0.1
-      },
-      {
-        "stockName": "Sagility India Ltd.",
-        "stockSymbol": "Sagility I",
-        "percentage": 2.7,
-        "sector": "It enabled services",
-        "marketValue": 427.2,
-        "quantity": 91.64,
-        "oneMonthChange": 0.28
-      },
-      {
-        "stockName": "Sumitomo Chemical India Private Ltd.",
-        "stockSymbol": "Sumitomo C",
-        "percentage": 2.58,
-        "sector": "Pesticides & agrochemicals",
-        "marketValue": 409,
-        "quantity": 6.3,
-        "oneMonthChange": 0.44
+        "oneMonthChange": -0.03
       },
       {
         "stockName": "CCL Products (India) Ltd.",
         "stockSymbol": "CCL Produc",
-        "percentage": 2.56,
+        "percentage": 2.66,
         "sector": "Tea & coffee",
-        "marketValue": 405.8,
+        "marketValue": 414.7,
         "quantity": 4.76,
-        "oneMonthChange": -0.03
+        "oneMonthChange": 0.1
       },
       {
-        "stockName": "J.b. Chemicals & Pharmaceuticals Ltd.",
-        "stockSymbol": "J.b. Chemi",
-        "percentage": 2.3,
-        "sector": "Pharmaceuticals",
-        "marketValue": 363.9,
-        "quantity": 2.06,
-        "oneMonthChange": 0.09
+        "stockName": "Sagility India Ltd.",
+        "stockSymbol": "Sagility I",
+        "percentage": 2.58,
+        "sector": "It enabled services",
+        "marketValue": 402,
+        "quantity": 91.64,
+        "oneMonthChange": -0.12
       },
       {
         "stockName": "Blue Star Ltd.",
         "stockSymbol": "Blue Star ",
-        "percentage": 2.29,
+        "percentage": 2.52,
         "sector": "Household appliances",
-        "marketValue": 362.1,
+        "marketValue": 392,
         "quantity": 2.08,
-        "oneMonthChange": 0.11
+        "oneMonthChange": 0.23
       },
       {
-        "stockName": "Awfis Space Solutions Ltd.",
-        "stockSymbol": "Awfis Spac",
-        "percentage": 2.28,
-        "sector": "Diversified commercial services",
-        "marketValue": 360.3,
-        "quantity": 6.05,
-        "oneMonthChange": -0.21
+        "stockName": "Gabriel India Ltd.",
+        "stockSymbol": "Gabriel In",
+        "percentage": 2.36,
+        "sector": "Auto components & equipments",
+        "marketValue": 367.7,
+        "quantity": 3.19,
+        "oneMonthChange": 0.27
+      },
+      {
+        "stockName": "Radico Khaitan Ltd.",
+        "stockSymbol": "Radico Kha",
+        "percentage": 2.36,
+        "sector": "Breweries & distilleries",
+        "marketValue": 367.6,
+        "quantity": 1.29,
+        "oneMonthChange": 0.13
+      },
+      {
+        "stockName": "Sumitomo Chemical India Private Ltd.",
+        "stockSymbol": "Sumitomo C",
+        "percentage": 2.29,
+        "sector": "Pesticides & agrochemicals",
+        "marketValue": 356.9,
+        "quantity": 6.3,
+        "oneMonthChange": -0.29
       }
     ],
     "portfolioSummary": {
-      "equityHolding": 97.2,
+      "equityHolding": 97.17,
       "numberOfStocks": 62
     },
     "returns": {
-      "oneMonth": 8,
-      "threeMonth": 10,
-      "sixMonth": 10,
-      "oneYear": 10,
-      "threeYear": 9
+      "oneMonth": 12,
+      "threeMonth": 12,
+      "sixMonth": 12,
+      "oneYear": 12,
+      "threeYear": 12
     }
   },
   {
-    "schemeName": "Nippon India Small Cap Fund -",
+    "schemeName": "PGIM India",
+    "crisilRating": 2,
+    "portfolio": {
+      "turnoverRatio": 97.17,
+      "equityHolding": 97.17,
+      "numberOfStocks": 62,
+      "debtHolding": 0.41,
+      "numberOfDebtHoldings": 62,
+      "cashHolding": 2.42
+    },
+    "planType": "Regular Plan",
+    "isSponsored": false,
+    "individualHoldings": []
+  },
+  {
+    "schemeName": "Nippon India",
     "crisilRating": 4,
     "portfolio": {
-      "turnoverRatio": 12,
-      "equityHolding": 95.76,
-      "numberOfStocks": 237,
-      "debtHolding": 4.24,
-      "numberOfDebtHoldings": 237
+      "turnoverRatio": 94.92,
+      "equityHolding": 94.92,
+      "numberOfStocks": 235,
+      "debtHolding": 5.08,
+      "numberOfDebtHoldings": 235
     },
-    "planType": "Direct Plan",
+    "planType": "Regular Plan",
     "isSponsored": false,
     "individualHoldings": [
       {
         "stockName": "Multi Commodity Exchange Of India Ltd.",
         "stockSymbol": "Multi Comm",
-        "percentage": 2.16,
+        "percentage": 2.11,
         "sector": "Exchange and data platform",
-        "marketValue": 14239.8,
+        "marketValue": 13679,
         "quantity": 18.51,
-        "oneMonthChange": -0.33
+        "oneMonthChange": -0.05
       },
       {
         "stockName": "HDFC Bank Ltd.",
         "stockSymbol": "HDFC Bank ",
-        "percentage": 2.04,
+        "percentage": 1.95,
         "sector": "Private sector bank",
-        "marketValue": 13421,
-        "quantity": 66.5,
-        "oneMonthChange": 0.04
+        "marketValue": 12656.3,
+        "quantity": 1.33,
+        "oneMonthChange": -0.09
       },
       {
-        "stockName": "Kirloskar Brothers Ltd.",
-        "stockSymbol": "Kirloskar ",
+        "stockName": "-\n                                                                                        Kirloskar Brothers Ltd.",
+        "stockSymbol": "-\n        ",
         "percentage": 1.34,
         "sector": "Compressors, pumps & diesel engines",
-        "marketValue": 8814.1,
+        "marketValue": 8683.1,
         "quantity": 44.72,
-        "oneMonthChange": -0.24
+        "oneMonthChange": 0
       },
       {
         "stockName": "Paradeep Phosphates Ltd.",
         "stockSymbol": "Paradeep P",
-        "percentage": 1.32,
+        "percentage": 1.28,
         "sector": "Fertilizers",
-        "marketValue": 8695.7,
-        "quantity": 4.04,
-        "oneMonthChange": 0.39
+        "marketValue": 8281.3,
+        "quantity": 3.81,
+        "oneMonthChange": -0.04
       },
       {
         "stockName": "Karur Vysya Bank Ltd",
         "stockSymbol": "Karur Vysy",
-        "percentage": 1.27,
+        "percentage": 1.26,
         "sector": "Private sector bank",
-        "marketValue": 8378.3,
-        "quantity": 3.18,
+        "marketValue": 8164.1,
+        "quantity": 3.81,
         "oneMonthChange": -0.01
       },
       {
-        "stockName": "Apar Industries Ltd.",
-        "stockSymbol": "Apar Indus",
-        "percentage": 1.22,
-        "sector": "Other electrical equipment",
-        "marketValue": 8010.3,
-        "quantity": 8.99,
-        "oneMonthChange": 0.04
-      },
-      {
-        "stockName": "Elantas Beck India Ltd.",
-        "stockSymbol": "Elantas Be",
-        "percentage": 1.21,
-        "sector": "Specialty chemicals",
-        "marketValue": 7976.5,
-        "quantity": 6.51,
-        "oneMonthChange": -0.03
-      },
-      {
-        "stockName": "State Bank Of India",
-        "stockSymbol": "State Bank",
-        "percentage": 1.1,
-        "sector": "Public sector bank",
-        "marketValue": 7248.6,
-        "quantity": 91,
-        "oneMonthChange": -0.02
+        "stockName": "eClerx Services Ltd.",
+        "stockSymbol": "eClerx Ser",
+        "percentage": 1.15,
+        "sector": "Business process outsourcing (bpo)/ knowledge process outsourcing (kpo)",
+        "marketValue": 7439.3,
+        "quantity": 17.62,
+        "oneMonthChange": 0.14
       },
       {
         "stockName": "Tube Investments Of India Ltd.",
         "stockSymbol": "Tube Inves",
-        "percentage": 1.08,
+        "percentage": 1.14,
         "sector": "Auto components & equipments",
-        "marketValue": 7099.5,
+        "marketValue": 7401.7,
         "quantity": 24.99,
-        "oneMonthChange": -0.09
+        "oneMonthChange": 0.06
       },
       {
-        "stockName": "Zydus Wellness Ltd.",
-        "stockSymbol": "Zydus Well",
-        "percentage": 1.04,
-        "sector": "Packaged foods",
-        "marketValue": 6836.5,
-        "quantity": 33.69,
-        "oneMonthChange": 0.02
+        "stockName": "State Bank Of India",
+        "stockSymbol": "State Bank",
+        "percentage": 1.13,
+        "sector": "Public sector bank",
+        "marketValue": 7302.8,
+        "quantity": 91,
+        "oneMonthChange": 0.03
+      },
+      {
+        "stockName": "Elantas Beck India Ltd.",
+        "stockSymbol": "Elantas Be",
+        "percentage": 1.11,
+        "sector": "Specialty chemicals",
+        "marketValue": 7201.2,
+        "quantity": 6.51,
+        "oneMonthChange": -0.1
+      },
+      {
+        "stockName": "Apar Industries Ltd.",
+        "stockSymbol": "Apar Indus",
+        "percentage": 1.07,
+        "sector": "Other electrical equipment",
+        "marketValue": 6953.2,
+        "quantity": 8.99,
+        "oneMonthChange": -0.15
       }
     ],
     "portfolioSummary": {
-      "equityHolding": 95.76,
-      "numberOfStocks": 237
+      "equityHolding": 94.92,
+      "numberOfStocks": 235
     },
     "returns": {
-      "oneMonth": 8,
-      "threeMonth": 10,
-      "sixMonth": 10,
-      "oneYear": 10,
-      "threeYear": 9
+      "oneMonth": 12,
+      "threeMonth": 12,
+      "sixMonth": 12,
+      "oneYear": 12,
+      "threeYear": 12
     }
   },
   {
-    "schemeName": "Franklin India Small Cap Fund - Direct - Growth",
-    "crisilRating": 3,
+    "schemeName": "Nippon India",
+    "crisilRating": 4,
     "portfolio": {
-      "turnoverRatio": 23,
-      "equityHolding": 94.31,
-      "numberOfStocks": 97,
-      "debtHolding": 0.18,
-      "numberOfDebtHoldings": 97,
-      "cashHolding": 5.51
+      "turnoverRatio": 94.92,
+      "equityHolding": 94.92,
+      "numberOfStocks": 235,
+      "debtHolding": 5.08,
+      "numberOfDebtHoldings": 235
     },
     "planType": "Direct Plan",
+    "isSponsored": false,
+    "individualHoldings": []
+  },
+  {
+    "schemeName": "Franklin India",
+    "crisilRating": 3,
+    "portfolio": {
+      "turnoverRatio": 94.07,
+      "equityHolding": 94.07,
+      "numberOfStocks": 98,
+      "debtHolding": 0.19,
+      "numberOfDebtHoldings": 98,
+      "cashHolding": 5.74
+    },
+    "planType": "Regular Plan",
     "isSponsored": false,
     "individualHoldings": [
       {
         "stockName": "Aster DM Healthcare Ltd.",
         "stockSymbol": "Aster DM H",
-        "percentage": 3.21,
+        "percentage": 3.04,
         "sector": "Hospital",
-        "marketValue": 4433.6,
-        "quantity": 73.29,
-        "oneMonthChange": 0.09
+        "marketValue": 4044.7,
+        "quantity": 67.29,
+        "oneMonthChange": -0.17
       },
       {
         "stockName": "Brigade Enterprises Ltd.",
         "stockSymbol": "Brigade En",
-        "percentage": 2.82,
+        "percentage": 2.68,
         "sector": "Residential, commercial projects",
-        "marketValue": 3898.9,
+        "marketValue": 3571.2,
         "quantity": 38.69,
-        "oneMonthChange": -0.25
+        "oneMonthChange": -0.14
       },
       {
         "stockName": "Eris Lifesciences Ltd.",
         "stockSymbol": "Eris Lifes",
-        "percentage": 2.43,
-        "sector": "Pharmaceuticals",
-        "marketValue": 3358.2,
-        "quantity": 18.67,
-        "oneMonthChange": 0.18
-      },
-      {
-        "stockName": "Syrma SGS Technology Ltd.",
-        "stockSymbol": "Syrma SGS ",
-        "percentage": 2.14,
-        "sector": "Industrial products",
-        "marketValue": 2960.6,
-        "quantity": 39.16,
-        "oneMonthChange": 0.55
-      },
-      {
-        "stockName": "Kalyan Jewellers India Ltd.",
-        "stockSymbol": "Kalyan Jew",
-        "percentage": 2.14,
-        "sector": "Gems, jewellery and watches",
-        "marketValue": 2951.8,
-        "quantity": 49.63,
-        "oneMonthChange": 0.16
-      },
-      {
-        "stockName": "Equitas Small Finance Bank Ltd.",
-        "stockSymbol": "Equitas Sm",
-        "percentage": 2.06,
-        "sector": "Other bank",
-        "marketValue": 2848.3,
-        "quantity": 4.81,
-        "oneMonthChange": -0.24
-      },
-      {
-        "stockName": "CCL Products (India) Ltd.",
-        "stockSymbol": "CCL Produc",
-        "percentage": 2.01,
-        "sector": "Tea & coffee",
-        "marketValue": 2780.5,
-        "quantity": 32.6,
-        "oneMonthChange": 0.03
-      },
-      {
-        "stockName": "Karur Vysya Bank Ltd",
-        "stockSymbol": "Karur Vysy",
-        "percentage": 2.01,
-        "sector": "Private sector bank",
-        "marketValue": 2778.9,
-        "quantity": 1.05,
-        "oneMonthChange": -0.64
-      },
-      {
-        "stockName": "Zensar Technologies Ltd.",
-        "stockSymbol": "Zensar Tec",
-        "percentage": 1.88,
-        "sector": "Computers - software & consulting",
-        "marketValue": 2596.1,
-        "quantity": 32.2,
-        "oneMonthChange": -0.06
-      },
-      {
-        "stockName": "J.b. Chemicals & Pharmaceuticals Ltd.",
-        "stockSymbol": "J.b. Chemi",
-        "percentage": 1.85,
-        "sector": "Pharmaceuticals",
-        "marketValue": 2563.2,
-        "quantity": 14.49,
-        "oneMonthChange": 0.12
-      }
-    ],
-    "portfolioSummary": {
-      "equityHolding": 94.31,
-      "numberOfStocks": 97
-    },
-    "returns": {
-      "oneMonth": 8,
-      "threeMonth": 10,
-      "sixMonth": 10,
-      "oneYear": 10,
-      "threeYear": 9
-    }
-  },
-  {
-    "schemeName": "Bank of India Small Cap Fund -",
-    "crisilRating": 3,
-    "portfolio": {
-      "turnoverRatio": 44,
-      "equityHolding": 93.24,
-      "numberOfStocks": 75,
-      "debtHolding": 0.4,
-      "numberOfDebtHoldings": 75,
-      "cashHolding": 6.36
-    },
-    "planType": "Direct Plan",
-    "isSponsored": false,
-    "individualHoldings": [
-      {
-        "stockName": "Lloyds Metals And Energy Ltd.",
-        "stockSymbol": "Lloyds Met",
-        "percentage": 3.3,
-        "sector": "Sponge iron",
-        "marketValue": 639.5,
-        "quantity": 4.25,
-        "oneMonthChange": -0.24
-      },
-      {
-        "stockName": "Quality Power Electrical Equipments Ltd.",
-        "stockSymbol": "Quality Po",
-        "percentage": 2.92,
-        "sector": "Heavy electrical equipment",
-        "marketValue": 565.9,
-        "quantity": 7.45,
-        "oneMonthChange": 0.05
-      },
-      {
-        "stockName": "Ami Organics Ltd.",
-        "stockSymbol": "Ami Organi",
-        "percentage": 2.57,
-        "sector": "Pharmaceuticals",
-        "marketValue": 498,
-        "quantity": 3.75,
-        "oneMonthChange": 0.32
-      },
-      {
-        "stockName": "CreditAccess Grameen Ltd.",
-        "stockSymbol": "CreditAcce",
         "percentage": 2.53,
-        "sector": "Microfinance institutions",
-        "marketValue": 490.6,
-        "quantity": 3.93,
-        "oneMonthChange": 0.04
-      },
-      {
-        "stockName": "Eris Lifesciences Ltd.",
-        "stockSymbol": "Eris Lifes",
-        "percentage": 2.51,
         "sector": "Pharmaceuticals",
-        "marketValue": 485.9,
-        "quantity": 2.7,
-        "oneMonthChange": 0.13
-      },
-      {
-        "stockName": "Kaynes Technology India Private Ltd.",
-        "stockSymbol": "Kaynes Tec",
-        "percentage": 2.39,
-        "sector": "Industrial products",
-        "marketValue": 462.9,
-        "quantity": 75,
-        "oneMonthChange": -0.01
+        "marketValue": 3360.7,
+        "quantity": 18.67,
+        "oneMonthChange": 0.1
       },
       {
         "stockName": "Syrma SGS Technology Ltd.",
         "stockSymbol": "Syrma SGS ",
         "percentage": 2.28,
         "sector": "Industrial products",
-        "marketValue": 441.7,
+        "marketValue": 3030.6,
+        "quantity": 40.23,
+        "oneMonthChange": 0.14
+      },
+      {
+        "stockName": "CCL Products (India) Ltd.",
+        "stockSymbol": "CCL Produc",
+        "percentage": 2.14,
+        "sector": "Tea & coffee",
+        "marketValue": 2841.3,
+        "quantity": 32.6,
+        "oneMonthChange": 0.12
+      },
+      {
+        "stockName": "Lemon Tree Hotels Ltd.",
+        "stockSymbol": "Lemon Tree",
+        "percentage": 1.88,
+        "sector": "Hotels & resorts",
+        "marketValue": 2503,
+        "quantity": 1.51,
+        "oneMonthChange": 0.2
+      },
+      {
+        "stockName": "Kalyan Jewellers India Ltd.",
+        "stockSymbol": "Kalyan Jew",
+        "percentage": 1.88,
+        "sector": "Gems, jewellery and watches",
+        "marketValue": 2502.3,
+        "quantity": 49.63,
+        "oneMonthChange": -0.25
+      },
+      {
+        "stockName": "J.b. Chemicals & Pharmaceuticals Ltd.",
+        "stockSymbol": "J.b. Chemi",
+        "percentage": 1.88,
+        "sector": "Pharmaceuticals",
+        "marketValue": 2498,
+        "quantity": 14.49,
+        "oneMonthChange": 0.02
+      },
+      {
+        "stockName": "Deepak Nitrite Ltd.",
+        "stockSymbol": "Deepak Nit",
+        "percentage": 1.87,
+        "sector": "Specialty chemicals",
+        "marketValue": 2481.6,
+        "quantity": 13.88,
+        "oneMonthChange": 0.02
+      },
+      {
+        "stockName": "Zensar Technologies Ltd.",
+        "stockSymbol": "Zensar Tec",
+        "percentage": 1.86,
+        "sector": "Computers - software & consulting",
+        "marketValue": 2473.5,
+        "quantity": 32.2,
+        "oneMonthChange": -0.02
+      }
+    ],
+    "portfolioSummary": {
+      "equityHolding": 94.07,
+      "numberOfStocks": 98
+    },
+    "returns": {
+      "oneMonth": 12,
+      "threeMonth": 12,
+      "sixMonth": 12,
+      "oneYear": 12,
+      "threeYear": 12
+    }
+  },
+  {
+    "schemeName": "Franklin India",
+    "crisilRating": 3,
+    "portfolio": {
+      "turnoverRatio": 94.07,
+      "equityHolding": 94.07,
+      "numberOfStocks": 98,
+      "debtHolding": 0.19,
+      "numberOfDebtHoldings": 98,
+      "cashHolding": 5.74
+    },
+    "planType": "Direct Plan",
+    "isSponsored": false,
+    "individualHoldings": []
+  },
+  {
+    "schemeName": "Bank of India",
+    "crisilRating": 3,
+    "portfolio": {
+      "turnoverRatio": 92.24,
+      "equityHolding": 92.24,
+      "numberOfStocks": 77,
+      "debtHolding": 0.95,
+      "numberOfDebtHoldings": 77,
+      "cashHolding": 6.81
+    },
+    "planType": "Direct Plan",
+    "isSponsored": false,
+    "individualHoldings": [
+      {
+        "stockName": "CreditAccess Grameen Ltd.",
+        "stockSymbol": "CreditAcce",
+        "percentage": 3.19,
+        "sector": "Microfinance institutions",
+        "marketValue": 599.2,
+        "quantity": 4.28,
+        "oneMonthChange": 0.66
+      },
+      {
+        "stockName": "Quality Power Electrical Equipments Ltd.",
+        "stockSymbol": "Quality Po",
+        "percentage": 3.03,
+        "sector": "Heavy electrical equipment",
+        "marketValue": 570,
+        "quantity": 7.27,
+        "oneMonthChange": 0.11
+      },
+      {
+        "stockName": "Lloyds Metals And Energy Ltd.",
+        "stockSymbol": "Lloyds Met",
+        "percentage": 2.91,
+        "sector": "Sponge iron",
+        "marketValue": 547.7,
+        "quantity": 4.25,
+        "oneMonthChange": -0.39
+      },
+      {
+        "stockName": "Ami Organics Ltd.",
+        "stockSymbol": "Ami Organi",
+        "percentage": 2.81,
+        "sector": "Pharmaceuticals",
+        "marketValue": 527.5,
+        "quantity": 3.75,
+        "oneMonthChange": 0.24
+      },
+      {
+        "stockName": "Eris Lifesciences Ltd.",
+        "stockSymbol": "Eris Lifes",
+        "percentage": 2.59,
+        "sector": "Pharmaceuticals",
+        "marketValue": 486.2,
+        "quantity": 2.7,
+        "oneMonthChange": 0.08
+      },
+      {
+        "stockName": "Kaynes Technology India Private Ltd.",
+        "stockSymbol": "Kaynes Tec",
+        "percentage": 2.44,
+        "sector": "Industrial products",
+        "marketValue": 459.2,
+        "quantity": 75,
+        "oneMonthChange": 0.05
+      },
+      {
+        "stockName": "Syrma SGS Technology Ltd.",
+        "stockSymbol": "Syrma SGS ",
+        "percentage": 2.34,
+        "sector": "Industrial products",
+        "marketValue": 440.1,
         "quantity": 5.84,
-        "oneMonthChange": 0.54
-      },
-      {
-        "stockName": "Ambuja Cements Ltd.",
-        "stockSymbol": "Ambuja Cem",
-        "percentage": 2.19,
-        "sector": "Cement & cement products",
-        "marketValue": 425,
-        "quantity": 7.17,
-        "oneMonthChange": 0.28
-      },
-      {
-        "stockName": "Housing & Urban Development Corporation Ltd.",
-        "stockSymbol": "Housing & ",
-        "percentage": 2.19,
-        "sector": "Financial institution",
-        "marketValue": 424.5,
-        "quantity": 20,
-        "oneMonthChange": -0.3
+        "oneMonthChange": 0.06
       },
       {
         "stockName": "Siemens Energy India Ltd.",
         "stockSymbol": "Siemens En",
-        "percentage": 2.11,
+        "percentage": 2.27,
         "sector": "Power generation",
-        "marketValue": 409.4,
+        "marketValue": 426.7,
         "quantity": 1.26,
-        "oneMonthChange": 0.28
+        "oneMonthChange": 0.16
+      },
+      {
+        "stockName": "Housing & Urban Development Corporation Ltd.",
+        "stockSymbol": "Housing & ",
+        "percentage": 2.18,
+        "sector": "Financial institution",
+        "marketValue": 409,
+        "quantity": 20,
+        "oneMonthChange": -0.01
+      },
+      {
+        "stockName": "Ambuja Cements Ltd.",
+        "stockSymbol": "Ambuja Cem",
+        "percentage": 2.15,
+        "sector": "Cement & cement products",
+        "marketValue": 403.8,
+        "quantity": 7.17,
+        "oneMonthChange": -0.04
       }
     ],
     "portfolioSummary": {
-      "equityHolding": 93.24,
-      "numberOfStocks": 75
+      "equityHolding": 92.24,
+      "numberOfStocks": 77
     },
     "returns": {
-      "oneMonth": 8,
-      "threeMonth": 10,
-      "sixMonth": 10,
-      "oneYear": 10,
-      "threeYear": 9
+      "oneMonth": 12,
+      "threeMonth": 12,
+      "sixMonth": 12,
+      "oneYear": 12,
+      "threeYear": 12
     }
   },
   {
-    "schemeName": "PGIM India Small Cap Fund -",
+    "schemeName": "Bank of India",
+    "crisilRating": 2,
+    "portfolio": {
+      "turnoverRatio": 92.24,
+      "equityHolding": 92.24,
+      "numberOfStocks": 77,
+      "debtHolding": 0.95,
+      "numberOfDebtHoldings": 77,
+      "cashHolding": 6.81
+    },
+    "planType": "Regular Plan",
+    "isSponsored": false,
+    "individualHoldings": []
+  },
+  {
+    "schemeName": "PGIM India",
+    "crisilRating": 2,
+    "portfolio": {
+      "turnoverRatio": 49.43,
+      "equityHolding": 50.57,
+      "numberOfStocks": 28,
+      "numberOfDebtHoldings": 28
+    },
+    "planType": "Regular Plan",
+    "isSponsored": false,
+    "individualHoldings": []
+  },
+  {
+    "schemeName": "PGIM India",
     "crisilRating": 2,
     "portfolio": {
       "turnoverRatio": 49.43,
@@ -593,108 +781,6 @@
     },
     "planType": "Direct Plan",
     "isSponsored": false,
-    "individualHoldings": [
-      {
-        "stockName": "Multi Commodity Exchange Of India Ltd.",
-        "stockSymbol": "Multi Comm",
-        "percentage": 3.52,
-        "sector": "Exchange and data platform",
-        "marketValue": 556.4,
-        "quantity": 72.33,
-        "oneMonthChange": -0.91
-      },
-      {
-        "stockName": "Krishna Institute of Medical Sciences Ltd.",
-        "stockSymbol": "Krishna In",
-        "percentage": 3.21,
-        "sector": "Hospital",
-        "marketValue": 508.8,
-        "quantity": 6.77,
-        "oneMonthChange": 0.29
-      },
-      {
-        "stockName": "Solar Industries India Ltd.",
-        "stockSymbol": "Solar Indu",
-        "percentage": 2.91,
-        "sector": "Explosives",
-        "marketValue": 460.4,
-        "quantity": 32.38,
-        "oneMonthChange": -1.14
-      },
-      {
-        "stockName": "Affle India Ltd.",
-        "stockSymbol": "Affle Indi",
-        "percentage": 2.72,
-        "sector": "It enabled services",
-        "marketValue": 430.5,
-        "quantity": 2.2,
-        "oneMonthChange": -0.1
-      },
-      {
-        "stockName": "Sagility India Ltd.",
-        "stockSymbol": "Sagility I",
-        "percentage": 2.7,
-        "sector": "It enabled services",
-        "marketValue": 427.2,
-        "quantity": 91.64,
-        "oneMonthChange": 0.28
-      },
-      {
-        "stockName": "Sumitomo Chemical India Private Ltd.",
-        "stockSymbol": "Sumitomo C",
-        "percentage": 2.58,
-        "sector": "Pesticides & agrochemicals",
-        "marketValue": 409,
-        "quantity": 6.3,
-        "oneMonthChange": 0.44
-      },
-      {
-        "stockName": "CCL Products (India) Ltd.",
-        "stockSymbol": "CCL Produc",
-        "percentage": 2.56,
-        "sector": "Tea & coffee",
-        "marketValue": 405.8,
-        "quantity": 4.76,
-        "oneMonthChange": -0.03
-      },
-      {
-        "stockName": "J.b. Chemicals & Pharmaceuticals Ltd.",
-        "stockSymbol": "J.b. Chemi",
-        "percentage": 2.3,
-        "sector": "Pharmaceuticals",
-        "marketValue": 363.9,
-        "quantity": 2.06,
-        "oneMonthChange": 0.09
-      },
-      {
-        "stockName": "Blue Star Ltd.",
-        "stockSymbol": "Blue Star ",
-        "percentage": 2.29,
-        "sector": "Household appliances",
-        "marketValue": 362.1,
-        "quantity": 2.08,
-        "oneMonthChange": 0.11
-      },
-      {
-        "stockName": "Awfis Space Solutions Ltd.",
-        "stockSymbol": "Awfis Spac",
-        "percentage": 2.28,
-        "sector": "Diversified commercial services",
-        "marketValue": 360.3,
-        "quantity": 6.05,
-        "oneMonthChange": -0.21
-      }
-    ],
-    "portfolioSummary": {
-      "equityHolding": 97.2,
-      "numberOfStocks": 62
-    },
-    "returns": {
-      "oneMonth": 8,
-      "threeMonth": 10,
-      "sixMonth": 10,
-      "oneYear": 10,
-      "threeYear": 9
-    }
+    "individualHoldings": []
   }
 ]

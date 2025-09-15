@@ -3,8 +3,12 @@ import cors from 'cors';
 import { MongoDBService } from '../services/mongodb.service';
 import { PortfolioChangeService } from '../services/portfolio-change.service';
 import { DailySchedulerService } from '../services/daily-scheduler.service';
+import { TestSchedulerService } from '../services/test-scheduler.service';
 import { DailyScraperService } from '../services/daily-scraper.service';
+import { HistoricalDataService } from '../services/historical-data.service';
+import { ScrapingStatusService } from '../services/scraping-status.service';
 import { connectDB } from '../config/database';
+import { IHolding } from '../models/Holding';
 
 const app = express();
 const PORT = 5000;
@@ -17,7 +21,10 @@ app.use(express.json());
 const mongoService = new MongoDBService();
 const portfolioChangeService = new PortfolioChangeService();
 const dailyScheduler = new DailySchedulerService();
+const testScheduler = new TestSchedulerService();
 const dailyScraper = new DailyScraperService();
+const historicalDataService = new HistoricalDataService();
+const scrapingStatusService = ScrapingStatusService.getInstance();
 
 // Routes
 app.get('/api/funds', async (req, res) => {
@@ -74,9 +81,9 @@ app.get('/api/funds/compare/:fund1/:fund2', async (req, res) => {
         holdings: holdings2,
         totalHoldings: holdings2.length
       },
-      commonHoldings: [] as any[],
-      uniqueToFund1: [] as any[],
-      uniqueToFund2: [] as any[]
+      commonHoldings: [] as IHolding[],
+      uniqueToFund1: [] as IHolding[],
+      uniqueToFund2: [] as IHolding[]
     };
 
     // Find common holdings
@@ -160,13 +167,16 @@ app.get('/api/funds/:id/changes', async (req, res) => {
 app.get('/api/changes/significant', async (req, res) => {
   try {
     const { days = 7 } = req.query;
+    console.log(`🔍 Fetching significant changes for last ${days} days`);
     const changes = await portfolioChangeService.getSignificantChanges(Number(days));
+    console.log(`📊 Found ${changes.length} significant changes`);
     res.json({
       success: true,
       data: changes,
       count: changes.length
     });
   } catch (error) {
+    console.error('❌ Error fetching significant changes:', error);
     res.status(500).json({
       success: false,
       error: 'Failed to fetch significant changes'
@@ -219,10 +229,13 @@ app.post('/api/portfolio/detect-changes/:id', async (req, res) => {
 // Manual trigger endpoints for testing
 app.post('/api/admin/trigger-analysis', async (req, res) => {
   try {
-    await dailyScheduler.triggerPortfolioAnalysis();
+    const isTestMode = process.env.NODE_ENV === 'test' || process.env.TEST_MODE === 'true';
+    const scheduler = isTestMode ? testScheduler : dailyScheduler;
+    
+    await scheduler.triggerPortfolioAnalysis();
     res.json({
       success: true,
-      message: 'Portfolio analysis triggered successfully'
+      message: `Portfolio analysis triggered successfully (${isTestMode ? 'TEST' : 'PRODUCTION'} mode)`
     });
   } catch (error) {
     res.status(500).json({
@@ -234,10 +247,13 @@ app.post('/api/admin/trigger-analysis', async (req, res) => {
 
 app.post('/api/admin/trigger-changes', async (req, res) => {
   try {
-    await dailyScheduler.triggerChangeDetection();
+    const isTestMode = process.env.NODE_ENV === 'test' || process.env.TEST_MODE === 'true';
+    const scheduler = isTestMode ? testScheduler : dailyScheduler;
+    
+    await scheduler.triggerChangeDetection();
     res.json({
       success: true,
-      message: 'Change detection triggered successfully'
+      message: `Change detection triggered successfully (${isTestMode ? 'TEST' : 'PRODUCTION'} mode)`
     });
   } catch (error) {
     res.status(500).json({
@@ -292,6 +308,109 @@ app.get('/api/admin/scraping-status', async (req, res) => {
   }
 });
 
+// Real-time scraping progress endpoint
+app.get('/api/admin/scraping-progress', async (req, res) => {
+  try {
+    const status = scrapingStatusService.getStatus();
+    res.json({
+      success: true,
+      data: status
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch scraping progress'
+    });
+  }
+});
+
+// Historical Data APIs
+app.get('/api/funds/:id/history', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const days = parseInt(req.query.days as string) || 30;
+    const history = await historicalDataService.getFundHistory(id, days);
+    res.json({
+      success: true,
+      data: history,
+      count: history.length
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get fund history'
+    });
+  }
+});
+
+app.get('/api/funds/:id/holdings-history', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const days = parseInt(req.query.days as string) || 30;
+    const history = await historicalDataService.getHoldingsHistory(id, days);
+    res.json({
+      success: true,
+      data: history,
+      count: history.length
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get holdings history'
+    });
+  }
+});
+
+app.get('/api/funds/:id/portfolio-changes', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const days = parseInt(req.query.days as string) || 30;
+    const changes = await historicalDataService.getPortfolioChanges(id, days);
+    res.json({
+      success: true,
+      data: changes,
+      count: changes.length
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get portfolio changes'
+    });
+  }
+});
+
+app.get('/api/portfolio/significant-changes', async (req, res) => {
+  try {
+    const days = parseInt(req.query.days as string) || 7;
+    const changes = await historicalDataService.getSignificantChanges(days);
+    res.json({
+      success: true,
+      data: changes,
+      count: changes.length
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get significant changes'
+    });
+  }
+});
+
+app.post('/api/admin/create-snapshots', async (req, res) => {
+  try {
+    await historicalDataService.createDailySnapshots();
+    res.json({
+      success: true,
+      message: 'Daily snapshots created successfully'
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: 'Failed to create daily snapshots'
+    });
+  }
+});
+
 // Health check
 app.get('/api/health', (req, res) => {
   res.json({
@@ -307,8 +426,16 @@ async function startServer() {
     await connectDB();
     console.log('🗄️ Connected to MongoDB');
     
-    // Start daily scheduler
-    dailyScheduler.startDailyTasks();
+    // Start scheduler based on environment
+    const isTestMode = process.env.NODE_ENV === 'test' || process.env.TEST_MODE === 'true';
+    
+    if (isTestMode) {
+      console.log('🧪 Starting in TEST MODE - Hourly tasks enabled');
+      testScheduler.startHourlyTestTasks();
+    } else {
+      console.log('🕐 Starting in PRODUCTION MODE - Daily tasks enabled');
+      dailyScheduler.startDailyTasks();
+    }
     
     app.listen(PORT, () => {
       console.log(`🚀 API Server running on http://localhost:${PORT}`);

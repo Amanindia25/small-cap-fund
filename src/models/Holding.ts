@@ -8,6 +8,7 @@ export interface IHolding extends Document {
   sector: string;
   marketValue: number;
   quantity?: number;
+  oneMonthChange?: number;
   date: Date;
   createdAt: Date;
   updatedAt: Date;
@@ -25,6 +26,7 @@ const HoldingSchema = new Schema<IHolding>({
   sector: { type: String, required: true },
   marketValue: { type: Number, required: true },
   quantity: { type: Number },
+  oneMonthChange: { type: Number },
   date: { type: Date, required: true, default: Date.now }
 }, {
   timestamps: true

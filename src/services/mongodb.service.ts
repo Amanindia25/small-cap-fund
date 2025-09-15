@@ -7,11 +7,14 @@ export class MongoDBService {
   
   async saveFund(fundData: FundData): Promise<IFund | null> {
     try {
-      // Check if fund already exists
-      const existingFund = await Fund.findOne({ name: fundData.schemeName });
+      // Check if fund already exists with same name AND planType
+      const existingFund = await Fund.findOne({ 
+        name: fundData.schemeName, 
+        planType: fundData.planType 
+      });
       
       if (existingFund) {
-        console.log(`📝 Updating existing fund: ${fundData.schemeName}`);
+        console.log(`📝 Updating existing fund: ${fundData.schemeName} (${fundData.planType})`);
         
         // Update existing fund
         const updatedFund = await Fund.findByIdAndUpdate(
@@ -27,7 +30,6 @@ export class MongoDBService {
               inceptionDate: fundData.inceptionDate || existingFund.inceptionDate,
               benchmark: fundData.benchmark || existingFund.benchmark,
               crisilRating: fundData.crisilRating || existingFund.crisilRating,
-              planType: fundData.planType,
               isSponsored: fundData.isSponsored,
               fundUrl: fundData.fundUrl || existingFund.fundUrl,
               updatedAt: new Date()
@@ -38,7 +40,7 @@ export class MongoDBService {
         
         return updatedFund;
       } else {
-        console.log(`➕ Creating new fund: ${fundData.schemeName}`);
+        console.log(`➕ Creating new fund: ${fundData.schemeName} (${fundData.planType})`);
         
         // Create new fund
         const newFund = new Fund({

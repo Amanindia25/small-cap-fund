@@ -1,6 +1,8 @@
 import { FundScraperService } from './fund-scraper.service';
 import { MongoDBService } from './mongodb.service';
 import { PortfolioChangeService } from './portfolio-change.service';
+import { HistoricalDataService } from './historical-data.service';
+import { ScrapingStatusService } from './scraping-status.service';
 import { Fund, IFund } from '../models/Fund';
 import { FundData, ScrapingConfig } from '../types/fund.types';
 import { BrowserManager } from '../utils/browser.util';
@@ -9,6 +11,8 @@ export class DailyScraperService {
   private fundScraper: FundScraperService;
   private mongoService: MongoDBService;
   private portfolioChangeService: PortfolioChangeService;
+  private historicalDataService: HistoricalDataService;
+  private statusService: ScrapingStatusService;
 
   constructor() {
     const config: ScrapingConfig = {
@@ -22,6 +26,8 @@ export class DailyScraperService {
     this.fundScraper = new FundScraperService(browserManager);
     this.mongoService = new MongoDBService();
     this.portfolioChangeService = new PortfolioChangeService();
+    this.historicalDataService = new HistoricalDataService();
+    this.statusService = ScrapingStatusService.getInstance();
   }
 
   async runDailyScraping(): Promise<{
@@ -40,6 +46,8 @@ export class DailyScraperService {
     try {
       // Step 1: Scrape fresh data from Moneycontrol
       console.log('📊 Scraping fresh data from Moneycontrol...');
+      this.statusService.updateProgress('Scraping data from Moneycontrol...', 0);
+      
       const scrapingResult = await this.fundScraper.scrapeSmallCapFunds();
       
       if (!scrapingResult.success) {
@@ -47,8 +55,12 @@ export class DailyScraperService {
       }
 
       console.log(`✅ Scraped ${scrapingResult.data.length} funds from website`);
+      this.statusService.startScraping(scrapingResult.data.length);
 
       // Step 2: Process and save each fund
+      this.statusService.updateProgress('Processing and saving funds...', 0);
+      let processedCount = 0;
+      
       for (const fundData of scrapingResult.data) {
         try {
           const result = await this.processFundData(fundData);
@@ -57,26 +69,31 @@ export class DailyScraperService {
           } else {
             updatedFunds++;
           }
+          processedCount++;
+          this.statusService.updateProgress(`Processing: ${fundData.schemeName}`, processedCount);
           console.log(`✅ Processed: ${fundData.schemeName}`);
         } catch (error) {
           const errorMsg = `Error processing ${fundData.schemeName}: ${error}`;
           console.error(`❌ ${errorMsg}`);
           errors.push(errorMsg);
+          this.statusService.addError(errorMsg);
         }
       }
 
       // Step 3: Create daily snapshots for all funds
       console.log('📸 Creating daily snapshots...');
-      await this.createDailySnapshots();
+      this.statusService.updateProgress('Creating daily snapshots...', processedCount);
+      await this.historicalDataService.createDailySnapshots();
 
       // Step 4: Detect portfolio changes
       console.log('🔍 Detecting portfolio changes...');
+      this.statusService.updateProgress('Detecting portfolio changes...', processedCount);
       await this.detectAllPortfolioChanges();
 
       const duration = ((Date.now() - startTime) / 1000).toFixed(2);
       console.log(`✅ Daily scraping completed in ${duration}s`);
 
-      return {
+      const result = {
         success: true,
         totalFunds: scrapingResult.data.length,
         updatedFunds,
@@ -84,25 +101,35 @@ export class DailyScraperService {
         errors
       };
 
+      this.statusService.completeScraping(result);
+      return result;
+
     } catch (error) {
       const errorMsg = `Daily scraping failed: ${error}`;
       console.error(`❌ ${errorMsg}`);
       errors.push(errorMsg);
+      this.statusService.addError(errorMsg);
       
-      return {
+      const result = {
         success: false,
         totalFunds: 0,
         updatedFunds,
         newFunds,
         errors
       };
+
+      this.statusService.completeScraping(result);
+      return result;
     }
   }
 
   private async processFundData(fundData: FundData): Promise<{ isNew: boolean }> {
     try {
-      // Check if fund already exists
-      const existingFund = await Fund.findOne({ name: fundData.schemeName });
+      // Check if fund already exists with same name AND planType
+      const existingFund = await Fund.findOne({ 
+        name: fundData.schemeName, 
+        planType: fundData.planType 
+      });
       
       if (existingFund) {
         // Update existing fund
@@ -154,7 +181,7 @@ export class DailyScraperService {
 
       for (const fund of funds) {
         try {
-          const changes = await this.portfolioChangeService.detectPortfolioChanges((fund._id as any).toString());
+          const changes = await this.historicalDataService.detectPortfolioChanges((fund._id as any).toString());
           if (changes.length > 0) {
             totalChanges += changes.length;
             fundsWithChanges++;
@@ -186,7 +213,7 @@ export class DailyScraperService {
       console.log('📊 Running portfolio analysis for existing funds...');
 
       // Create snapshots and detect changes
-      await this.createDailySnapshots();
+      await this.historicalDataService.createDailySnapshots();
       await this.detectAllPortfolioChanges();
 
       console.log(`✅ Incremental update completed. Analyzed existing funds`);

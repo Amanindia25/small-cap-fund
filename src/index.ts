@@ -2,8 +2,10 @@ import { BrowserManager } from './utils/browser.util';
 import { FundScraperService } from './services/fund-scraper.service';
 import { MongoDBService } from './services/mongodb.service';
 import { DataProcessor } from './utils/data-processor.util';
-import { ScrapingConfig } from './types/fund.types';
+import { ScrapingConfig, FundData } from './types/fund.types';
 import { connectDB } from './config/database';
+// import { logger } from './utils/logger.util';
+// import { handleAsync, AppError } from './utils/error-handler.util';
 
 async function main() {
   console.log('🚀 Starting Small Cap Fund Scraper...\n');
@@ -11,7 +13,7 @@ async function main() {
   // Configuration
   const config: ScrapingConfig = {
     url: 'https://www.moneycontrol.com/mutual-funds/performance-tracker/portfolioassets/small-cap-fund.html',
-    headless: false, // Set to false to see browser in action
+    headless: false, // Always visible for user to see scraping process
     timeout: 60000,
     delay: 1000,
     userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
@@ -52,7 +54,7 @@ async function main() {
       console.log('\n💾 Saving data to MongoDB...');
       let savedFunds = 0;
       let savedHoldings = 0;
-      const enhancedFunds: any[] = [];
+      const enhancedFunds: FundData[] = [];
 
       // Use the same page for individual fund scraping (no new page needed)
       const mainPage = await browserManager.createPage();

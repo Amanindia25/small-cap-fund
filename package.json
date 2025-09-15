@@ -11,8 +11,11 @@
     "scrape": "npm run build && npm start",
     "test-mongo": "ts-node test-enhanced-scraper.ts",
     "test-logging": "ts-node test-enhanced-logging.ts",
+    "test-visible": "ts-node test-visible-scraper.ts",
+    "test-single": "ts-node test-single-fund.ts",
     "e": "npm run build && npm start",
     "api": "ts-node src/api/server.ts",
+    "api-test": "set TEST_MODE=true && ts-node src/api/server.ts",
     "api-simple": "ts-node src/api/simple-server.ts",
     "api-build": "npm run build && node dist/api/server.js"
   },
