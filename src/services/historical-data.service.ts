@@ -388,4 +388,28 @@ export class HistoricalDataService {
       return [];
     }
   }
+
+  async getHoldingsForDate(fundId: string, start: Date, end: Date): Promise<IHoldingSnapshot[]> {
+    try {
+      const rows = await HoldingSnapshot.find({
+        fundId: new mongoose.Types.ObjectId(fundId),
+        date: { $gte: start, $lt: end }
+      }).sort({ createdAt: -1 });
+
+      // De-duplicate by stockSymbol (keep most recent in window)
+      const seen = new Map<string, IHoldingSnapshot>();
+      for (const r of rows) {
+        const key = String(r.stockSymbol || r.stockName);
+        if (!seen.has(key)) {
+          seen.set(key, r);
+        }
+      }
+      const unique = Array.from(seen.values());
+      unique.sort((a, b) => (b.percentage || 0) - (a.percentage || 0));
+      return unique as IHoldingSnapshot[];
+    } catch (error) {
+      console.error(`Error getting holdings for date for ${fundId}:`, error);
+      return [];
+    }
+  }
 }

@@ -89,6 +89,10 @@ export class MongoDBService {
         sector: holding.sector,
         marketValue: holding.marketValue,
         quantity: holding.quantity,
+        oneMonthChange: holding.oneMonthChange,
+        oneYearHighest: holding.oneYearHighest,
+        oneYearLowest: holding.oneYearLowest,
+        quantityChange: holding.quantityChange,
         date: new Date()
       }));
 
@@ -213,6 +217,37 @@ export class MongoDBService {
         topSectors: [],
         averageHoldingsPerFund: 0
       };
+    }
+  }
+
+  // Rewrite holdings for a fund from the embedded fund.individualHoldings
+  async rewriteHoldingsFromFund(fundId: string): Promise<IHolding[]> {
+    try {
+      const fund = await Fund.findById(fundId).lean();
+      if (!fund || !Array.isArray((fund as any).individualHoldings)) {
+        return [];
+      }
+      const sourceHoldings = (fund as any).individualHoldings as StockHolding[];
+      return await this.saveHoldings(fundId, sourceHoldings);
+    } catch (error) {
+      console.error(`❌ Error rewriting holdings for fund ${fundId}:`, error);
+      return [];
+    }
+  }
+
+  // Rewrite holdings for all funds
+  async rewriteAllHoldings(): Promise<{ updated: number }> {
+    try {
+      const funds = await Fund.find({}, { _id: 1 }).lean();
+      let updated = 0;
+      for (const f of funds) {
+        const res = await this.rewriteHoldingsFromFund((f._id as unknown as mongoose.Types.ObjectId).toString());
+        if (res.length > 0) updated += 1;
+      }
+      return { updated };
+    } catch (error) {
+      console.error('❌ Error rewriting holdings for all funds:', error);
+      return { updated: 0 };
     }
   }
 }

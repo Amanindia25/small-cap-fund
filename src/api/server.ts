@@ -46,11 +46,31 @@ app.get('/api/funds', async (req, res) => {
 app.get('/api/funds/:id/holdings', async (req, res) => {
   try {
     const { id } = req.params;
+    const { date } = req.query as { date?: string };
+
+    if (date) {
+      // Fetch holdings from HoldingSnapshot for the specific date
+      const [y, m, d] = (date as string).split('-').map(Number);
+      const start = new Date(Date.UTC(y, (m - 1), d));
+      start.setUTCHours(0, 0, 0, 0);
+      const end = new Date(start); end.setUTCDate(end.getUTCDate() + 1);
+      const holdings = await historicalDataService.getHoldingsForDate(id, start, end);
+      res.json({
+        success: true,
+        data: holdings,
+        count: holdings.length,
+        meta: { date, snapshot: holdings.length > 0 }
+      });
+      return;
+    }
+
+    // Default: latest/current holdings
     const holdings = await mongoService.getFundHoldings(id);
     res.json({
       success: true,
       data: holdings,
-      count: holdings.length
+      count: holdings.length,
+      meta: { latest: true }
     });
   } catch (error) {
     res.status(500).json({
@@ -336,6 +356,22 @@ app.post('/api/admin/trigger-incremental', async (req, res) => {
   }
 });
 
+// Admin: backfill holdings enriched fields from fund.individualHoldings
+app.post('/api/admin/backfill-holdings', async (req, res) => {
+  try {
+    const { fundId } = req.query as { fundId?: string };
+    if (fundId) {
+      const updated = await mongoService.rewriteHoldingsFromFund(fundId);
+      res.json({ success: true, message: `Backfilled ${updated.length} holdings for fund`, count: updated.length });
+      return;
+    }
+    const result = await mongoService.rewriteAllHoldings();
+    res.json({ success: true, message: `Backfilled holdings for ${result.updated} funds`, ...result });
+  } catch (error) {
+    res.status(500).json({ success: false, error: 'Failed to backfill holdings' });
+  }
+});
+
 app.get('/api/admin/scraping-status', async (req, res) => {
   try {
     const status = await dailyScraper.getScrapingStatus();
@@ -407,12 +443,17 @@ app.get('/api/funds/:id/holdings-history', async (req, res) => {
 app.get('/api/funds/:id/portfolio-changes', async (req, res) => {
   try {
     const { id } = req.params;
-    const days = parseInt(req.query.days as string) || 30;
+    const range = (req.query.range as string) || '';
+    const daysParam = parseInt(req.query.days as string);
+    const days = Number.isFinite(daysParam) && daysParam > 0
+      ? daysParam
+      : range === 'daily' ? 1 : range === 'weekly' ? 7 : range === 'monthly' ? 30 : 30;
     const changes = await historicalDataService.getPortfolioChanges(id, days);
     res.json({
       success: true,
       data: changes,
-      count: changes.length
+      count: changes.length,
+      meta: { range: range || `${days}-days`, days }
     });
   } catch (error) {
     res.status(500).json({

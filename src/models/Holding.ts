@@ -9,6 +9,9 @@ export interface IHolding extends Document {
   marketValue: number;
   quantity?: number;
   oneMonthChange?: number;
+  oneYearHighest?: number;
+  oneYearLowest?: number;
+  quantityChange?: number;
   date: Date;
   createdAt: Date;
   updatedAt: Date;
@@ -27,6 +30,9 @@ const HoldingSchema = new Schema<IHolding>({
   marketValue: { type: Number, required: true },
   quantity: { type: Number },
   oneMonthChange: { type: Number },
+  oneYearHighest: { type: Number },
+  oneYearLowest: { type: Number },
+  quantityChange: { type: Number },
   date: { type: Date, required: true, default: Date.now }
 }, {
   timestamps: true

@@ -880,8 +880,33 @@ export class FundScraperService {
       await fundPage.setViewport({ width: 1920, height: 1080 });
       
       console.log(`⏳ Navigating to fund page...`);
-      await fundPage.goto(absoluteUrl, { waitUntil: 'networkidle2' });
-      console.log(`✅ Successfully loaded fund page`);
+      // Robust navigation with retries and safer wait conditions
+      const maxNavAttempts = 3;
+      let lastNavError: unknown = null;
+      for (let attempt = 1; attempt <= maxNavAttempts; attempt++) {
+        try {
+          await fundPage.goto(absoluteUrl, {
+            waitUntil: 'domcontentloaded',
+            timeout: 120000
+          });
+          // Ensure some content rendered
+          await fundPage.waitForFunction(
+            () => (document.readyState === 'complete' || document.readyState === 'interactive') && (document.body?.innerText?.length || 0) > 200,
+            { timeout: 20000 }
+          );
+          console.log(`✅ Successfully loaded fund page`);
+          break;
+        } catch (err) {
+          lastNavError = err;
+          console.log(`⚠️ fund page navigation attempt ${attempt} failed. Retrying...`);
+          if (attempt === maxNavAttempts) {
+            throw err;
+          }
+          // Small backoff and try reload
+          await this.browserManager.delay(2000);
+          try { await fundPage.reload({ waitUntil: 'domcontentloaded', timeout: 60000 }); } catch {}
+        }
+      }
       
       // Wait for page to be fully visible
       await this.browserManager.delay(2000);
@@ -1616,95 +1641,102 @@ export class FundScraperService {
     try {
       console.log('⚠️ Scraping Risk ratios...');
       
-      // Try to find and click on "Risk" or "Ratios" tab
+      // Try multiple strategies to open the Risk/Ratios tab
       const clicked = await fundPage.evaluate(() => {
-        const links = Array.from(document.querySelectorAll('a, .nav-link, .tab, li')) as HTMLElement[];
-        const riskLink = links.find(link => {
-          const text = link.textContent?.toLowerCase() || '';
-          return text.includes('risk') || text.includes('ratio') || text.includes('ratios');
-        });
-        if (riskLink) {
-          (riskLink as HTMLElement).click();
+        const tryClick = (el: Element | null) => {
+          if (!el) return false;
+          (el as HTMLElement).click();
           return true;
-        }
+        };
+
+        // Strategy 1: Anchor/button by text
+        const textNodes = Array.from(document.querySelectorAll('a, button, .nav-link, .tab, li')) as HTMLElement[];
+        const byText = textNodes.find(link => {
+          const text = link.textContent?.toLowerCase() || '';
+          return text.includes('risk') || text.includes('ratio');
+        });
+        if (tryClick(byText || null)) return true;
+
+        // Strategy 2: Href or data-target attributes
+        const byAttr = document.querySelector('a[href*="risk"], a[href*="ratio"], button[data-target*="risk"], button[aria-controls*="risk"], [role="tab"][href*="ratio"], [role="tab"][aria-controls*="ratio"]');
+        if (tryClick(byAttr)) return true;
+
+        // Strategy 3: Tab list items
+        const tabCandidates = Array.from(document.querySelectorAll('li, div[role="tab"], a[role="tab"]')) as HTMLElement[];
+        const byTab = tabCandidates.find(el => (el.textContent || '').toLowerCase().includes('ratio'));
+        if (tryClick(byTab || null)) return true;
+
         return false;
       });
-      
+
       if (clicked) {
-        await this.browserManager.delay(3000);
+        await this.browserManager.delay(2500);
         console.log('✅ Clicked on Risk/Ratios tab');
+      } else {
+        console.log('⚠️ Risk/Ratios tab not explicitly found; attempting direct extraction');
       }
+
+      // Try to wait for a likely risk/ratio container to appear
+      try { await fundPage.waitForSelector('table, .ratio, .ratios, .risk, .risk-ratio, .fund_ratios, .performance_ratio', { timeout: 4000 }); } catch {}
 
       // Extract risk ratios data
       const riskRatios = await fundPage.evaluate(() => {
         const ratios: RiskRatios = {};
-        
-        // Look for risk ratios table or data
+
+        const assignIf = (label: string, raw: string) => {
+          const v = parseFloat(raw.replace(/[^0-9+\.-]/g, ''));
+          if (isNaN(v)) return;
+          const l = label.toLowerCase();
+          if (l.includes('standard') && l.includes('deviation')) (ratios as any).standardDeviation = v;
+          else if (l.includes('beta')) (ratios as any).beta = v;
+          else if (l.includes('sharpe')) (ratios as any).sharpeRatio = v;
+          else if (l.includes('treynor')) (ratios as any).treynorRatio = v;
+          else if (l.includes('jensen') && l.includes('alpha')) (ratios as any).jensenAlpha = v;
+        };
+
+        // 1) Table based extraction
         const tables = Array.from(document.querySelectorAll('table')) as HTMLTableElement[];
-        let riskTable: HTMLTableElement | null = null;
-        
-        // Find table with risk data
         for (const table of tables) {
-          const tableText = table.textContent?.toLowerCase() || '';
-          if (tableText.includes('risk') || tableText.includes('ratio') || 
-              tableText.includes('sharpe') || tableText.includes('beta') || 
-              tableText.includes('standard deviation')) {
-            riskTable = table;
-            break;
+          const t = (table.textContent || '').toLowerCase();
+          if (!(t.includes('risk') || t.includes('ratio') || t.includes('sharpe') || t.includes('beta') || t.includes('standard deviation'))) continue;
+          const rows = Array.from(table.querySelectorAll('tr')) as HTMLTableRowElement[];
+          for (const row of rows) {
+            const cells = Array.from(row.querySelectorAll('th,td')) as HTMLTableCellElement[];
+            if (cells.length < 2) continue;
+            assignIf(cells[0].textContent || '', cells[1].textContent || '');
           }
         }
-        
-        if (riskTable) {
-          const rows = Array.from(riskTable.querySelectorAll('tr')) as HTMLTableRowElement[];
-          rows.forEach(row => {
-            const cells = Array.from(row.querySelectorAll('td, th')) as HTMLTableCellElement[];
-            if (cells.length >= 2) {
-              const firstCell = cells[0].textContent?.toLowerCase() || '';
-              const secondCell = cells[1].textContent?.trim() || '';
-              
-              // Extract risk ratio values based on cell content
-              if (firstCell.includes('standard deviation')) {
-                const value = parseFloat(secondCell.replace(/,/g, ''));
-                if (!isNaN(value)) ratios.standardDeviation = value;
-              } else if (firstCell.includes('beta')) {
-                const value = parseFloat(secondCell.replace(/,/g, ''));
-                if (!isNaN(value)) ratios.beta = value;
-              } else if (firstCell.includes('sharpe')) {
-                const value = parseFloat(secondCell.replace(/,/g, ''));
-                if (!isNaN(value)) ratios.sharpeRatio = value;
-              } else if (firstCell.includes('treynor')) {
-                const value = parseFloat(secondCell.replace(/,/g, ''));
-                if (!isNaN(value)) ratios.treynorRatio = value;
-              } else if (firstCell.includes('jensen') && firstCell.includes('alpha')) {
-                const value = parseFloat(secondCell.replace(/,/g, ''));
-                if (!isNaN(value)) ratios.jensenAlpha = value;
-              }
-            }
-          });
+
+        // 2) Definition list / key-value blocks
+        const blocks = Array.from(document.querySelectorAll('dl, .key-value, .kv, .ratios, .ratio')) as HTMLElement[];
+        for (const b of blocks) {
+          const labels = Array.from(b.querySelectorAll('dt, .key, .label')) as HTMLElement[];
+          for (const lbl of labels) {
+            const valEl = lbl.nextElementSibling as HTMLElement | null;
+            if (valEl) assignIf(lbl.textContent || '', valEl.textContent || '');
+          }
         }
-        
-        // Fallback: Look for risk ratio values in page text
+
+        // 3) Fallback: regex scan of whole page
         if (Object.keys(ratios).length === 0) {
           const bodyText = document.body.textContent || '';
           const patterns = {
-            standardDeviation: /standard\s*deviation[:\s]*(\d+\.?\d*)/i,
-            beta: /beta[:\s]*(\d+\.?\d*)/i,
-            sharpeRatio: /sharpe\s*ratio[:\s]*(\d+\.?\d*)/i,
-            treynorRatio: /treynor[:\s]*(\d+\.?\d*)/i,
+            standardDeviation: /standard\s*deviation[:\s]*([+-]?\d+\.?\d*)/i,
+            beta: /beta[:\s]*([+-]?\d+\.?\d*)/i,
+            sharpeRatio: /sharpe\s*ratio[:\s]*([+-]?\d+\.?\d*)/i,
+            treynorRatio: /treynor[:\s]*([+-]?\d+\.?\d*)/i,
             jensenAlpha: /jensen[:\s]*alpha[:\s]*([+-]?\d+\.?\d*)/i
-          };
-          
-          for (const [key, pattern] of Object.entries(patterns)) {
-            const match = bodyText.match(pattern);
-            if (match) {
-              const value = parseFloat(match[1]);
-              if (!isNaN(value)) {
-                (ratios as any)[key] = value;
-              }
+          } as Record<string, RegExp>;
+
+          for (const [key, re] of Object.entries(patterns)) {
+            const m = bodyText.match(re);
+            if (m) {
+              const v = parseFloat(m[1]);
+              if (!isNaN(v)) (ratios as any)[key] = v;
             }
           }
         }
-        
+
         return ratios;
       });
       
