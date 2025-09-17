@@ -80,59 +80,7 @@ app.get('/api/funds/:id/holdings', async (req, res) => {
   }
 });
 
-app.get('/api/funds/compare/:fund1/:fund2', async (req, res) => {
-  try {
-    const { fund1, fund2 } = req.params;
-    
-    const [holdings1, holdings2] = await Promise.all([
-      mongoService.getFundHoldings(fund1),
-      mongoService.getFundHoldings(fund2)
-    ]);
-
-    // Compare holdings
-    const comparison = {
-      fund1: {
-        id: fund1,
-        holdings: holdings1,
-        totalHoldings: holdings1.length
-      },
-      fund2: {
-        id: fund2,
-        holdings: holdings2,
-        totalHoldings: holdings2.length
-      },
-      commonHoldings: [] as IHolding[],
-      uniqueToFund1: [] as IHolding[],
-      uniqueToFund2: [] as IHolding[]
-    };
-
-    // Find common holdings
-    const fund1Stocks = new Set(holdings1.map(h => h.stockName.toLowerCase()));
-    const fund2Stocks = new Set(holdings2.map(h => h.stockName.toLowerCase()));
-
-    comparison.commonHoldings = holdings1.filter(h => 
-      fund2Stocks.has(h.stockName.toLowerCase())
-    );
-
-    comparison.uniqueToFund1 = holdings1.filter(h => 
-      !fund2Stocks.has(h.stockName.toLowerCase())
-    );
-
-    comparison.uniqueToFund2 = holdings2.filter(h => 
-      !fund1Stocks.has(h.stockName.toLowerCase())
-    );
-
-    res.json({
-      success: true,
-      data: comparison
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: 'Failed to compare funds'
-    });
-  }
-});
+// Compare endpoint removed
 
 app.get('/api/sectors/top', async (req, res) => {
   try {
@@ -222,6 +170,21 @@ app.get('/api/funds/:id/compare-snapshots', async (req, res) => {
       success: false,
       error: 'Failed to compare snapshots'
     });
+  }
+});
+
+// Persist compare results for a given day (or latest two) into portfoliochanges
+app.post('/api/funds/:id/compare-snapshots/save', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { from, to } = req.query as { from?: string; to?: string };
+    const fromDate = from ? new Date(from) : undefined;
+    const toDate = to ? new Date(to) : undefined;
+    const saved = await portfolioChangeService.compareAndSave(id, fromDate, toDate);
+    res.json({ success: true, data: saved, count: saved.length });
+  } catch (error) {
+    console.error('Error persisting compare results:', error);
+    res.status(500).json({ success: false, error: 'Failed to save compare results' });
   }
 });
 
@@ -372,6 +335,16 @@ app.post('/api/admin/backfill-holdings', async (req, res) => {
   }
 });
 
+// Admin: remove duplicate funds
+app.post('/api/admin/cleanup-duplicates', async (req, res) => {
+  try {
+    const result = await mongoService.removeDuplicateFunds();
+    res.json({ success: true, message: `Removed ${result.removed} duplicate funds`, ...result });
+  } catch (error) {
+    res.status(500).json({ success: false, error: 'Failed to cleanup duplicates' });
+  }
+});
+
 app.get('/api/admin/scraping-status', async (req, res) => {
   try {
     const status = await dailyScraper.getScrapingStatus();
@@ -460,6 +433,65 @@ app.get('/api/funds/:id/portfolio-changes', async (req, res) => {
       success: false,
       error: 'Failed to get portfolio changes'
     });
+  }
+});
+
+// Weekly changes: latest completed week vs previous week (derive from snapshots)
+app.get('/api/funds/:id/weekly-changes', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const offsetParam = parseInt((req.query.weekOffset as string) || '0', 10);
+    const weekOffset = Number.isFinite(offsetParam) && offsetParam >= 0 ? offsetParam : 0;
+
+    // Helper: end of completed week (Sunday) shifted by offset
+    const endOfCompletedWeek = (offset: number): Date => {
+      const now = new Date();
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const day = today.getDay(); // 0=Sun,6=Sat
+      const daysSinceSunday = day; // if today is Sun (0), completed week ended today
+      const lastSunday = new Date(today);
+      lastSunday.setDate(today.getDate() - daysSinceSunday); // this week's Sunday
+      // We want the previous Sunday's date if today is Sunday (week just started),
+      // so always subtract 7 days to get the last fully completed Sunday
+      const completedSunday = new Date(lastSunday);
+      completedSunday.setDate(lastSunday.getDate() - 7); // completed week end
+      // Apply additional offset in weeks
+      completedSunday.setDate(completedSunday.getDate() - offset * 7);
+      return completedSunday;
+    };
+
+    const toDate = endOfCompletedWeek(weekOffset); // Week N end (Sunday)
+    const fromDate = endOfCompletedWeek(weekOffset + 1); // Week N-1 end
+
+    const changes = await portfolioChangeService.compareSnapshots(id, fromDate, toDate);
+
+    const weekKey = (d: Date): string => {
+      const tmp = new Date(d);
+      // ISO week number
+      const dayNum = (tmp.getDay() + 6) % 7; // 0=Mon
+      tmp.setDate(tmp.getDate() - dayNum + 3);
+      const firstThursday = new Date(tmp.getFullYear(), 0, 4);
+      const week = 1 + Math.round(((tmp.getTime() - firstThursday.getTime()) / 86400000 - 3 + ((firstThursday.getDay() + 6) % 7)) / 7);
+      const year = tmp.getFullYear();
+      return `${year}-W${String(week).padStart(2, '0')}`;
+    };
+
+    res.json({
+      success: true,
+      data: changes,
+      count: changes.length,
+      meta: {
+        mode: 'week_over_week',
+        fromDate,
+        toDate,
+        fromWeek: weekKey(fromDate),
+        toWeek: weekKey(toDate),
+        weekOffset,
+      },
+    });
+  } catch (error) {
+    console.error('Error computing weekly changes:', error);
+    res.status(500).json({ success: false, error: 'Failed to compute weekly changes' });
   }
 });
 

@@ -250,4 +250,53 @@ export class MongoDBService {
       return { updated: 0 };
     }
   }
+
+  // Remove duplicate funds (keep the one with most recent updatedAt)
+  async removeDuplicateFunds(): Promise<{ removed: number }> {
+    try {
+      console.log('🧹 Starting duplicate fund cleanup...');
+      
+      // Group funds by name and planType
+      const funds = await Fund.find({}).lean();
+      const fundGroups = new Map<string, any[]>();
+      
+      for (const fund of funds) {
+        const key = `${fund.name}|${fund.planType}`;
+        if (!fundGroups.has(key)) {
+          fundGroups.set(key, []);
+        }
+        fundGroups.get(key)!.push(fund);
+      }
+      
+      let removed = 0;
+      
+      // For each group with duplicates, keep the most recent one
+      for (const [key, group] of fundGroups) {
+        if (group.length > 1) {
+          console.log(`Found ${group.length} duplicates for: ${key}`);
+          
+          // Sort by updatedAt (most recent first)
+          group.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
+          
+          // Keep the first (most recent), remove the rest
+          const toKeep = group[0];
+          const toRemove = group.slice(1);
+          
+          for (const duplicate of toRemove) {
+            // Also remove associated holdings
+            await Holding.deleteMany({ fundId: duplicate._id });
+            await Fund.deleteOne({ _id: duplicate._id });
+            removed++;
+            console.log(`Removed duplicate fund: ${duplicate.name} (${duplicate.planType}) - ${duplicate._id}`);
+          }
+        }
+      }
+      
+      console.log(`✅ Cleanup complete. Removed ${removed} duplicate funds.`);
+      return { removed };
+    } catch (error) {
+      console.error('❌ Error removing duplicate funds:', error);
+      return { removed: 0 };
+    }
+  }
 }

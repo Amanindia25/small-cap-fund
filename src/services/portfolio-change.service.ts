@@ -6,6 +6,31 @@ import { HoldingSnapshot } from '../models/HoldingSnapshot';
 import mongoose from 'mongoose';
 
 export class PortfolioChangeService {
+  /**
+   * Compare snapshots (optionally for specific dates) and persist results to PortfolioChange.
+   * Idempotent per fund+toDate: removes existing records for that date before insert.
+   */
+  async compareAndSave(
+    fundId: string,
+    fromDate?: Date,
+    toDate?: Date
+  ): Promise<IPortfolioChange[]> {
+    const changes = await this.compareSnapshots(fundId, fromDate, toDate);
+    if (changes.length === 0) return [];
+
+    const to = toDate ?? new Date(changes[0].date);
+    const start = new Date(to.getFullYear(), to.getMonth(), to.getDate());
+    const end = new Date(start); end.setDate(end.getDate() + 1);
+
+    // Remove existing records for this fund on the target date to avoid duplicates
+    await PortfolioChange.deleteMany({
+      fundId: new mongoose.Types.ObjectId(fundId),
+      date: { $gte: start, $lt: end }
+    });
+
+    const saved = await PortfolioChange.insertMany(changes);
+    return saved;
+  }
   
   async createDailySnapshot(fundId: string): Promise<IDailySnapshot | null> {
     try {
@@ -86,6 +111,14 @@ export class PortfolioChangeService {
     try {
       const fundObjectId = new mongoose.Types.ObjectId(fundId);
 
+      const normalizeSymbol = (s: string | undefined): string => (s || '').trim().toUpperCase();
+      const isTestRow = (name?: string, symbol?: string, sector?: string): boolean => {
+        const n = (name || '').toLowerCase();
+        const s = normalizeSymbol(symbol);
+        const sec = (sector || '').toLowerCase();
+        return n.includes('demo') || s.startsWith('ZZ_') || sec === 'unknown';
+      };
+
       let baseSnapshot: IDailySnapshot | null = null;
       let targetSnapshot: IDailySnapshot | null = null;
 
@@ -98,10 +131,21 @@ export class PortfolioChangeService {
 
       const holdingsMapFromHS = async (d: Date): Promise<Map<string, { stockName: string; stockSymbol: string; percentage: number; sector: string }>> => {
         const { start, end } = dayRange(d);
-        const hs = await HoldingSnapshot.find({ fundId: fundObjectId, date: { $gte: start, $lt: end } }).lean();
+        // Get all snapshots for the day, latest first
+        const hs = await HoldingSnapshot.find({ fundId: fundObjectId, date: { $gte: start, $lt: end } })
+          .sort({ createdAt: -1 })
+          .lean();
         if (!hs || hs.length === 0) return new Map();
-        const entries = hs.map(h => [h.stockSymbol, { stockName: h.stockName, stockSymbol: h.stockSymbol, percentage: h.percentage, sector: h.sector }] as const);
-        return new Map(entries);
+        // Deduplicate by stockSymbol, keep latest
+        const map = new Map<string, { stockName: string; stockSymbol: string; percentage: number; sector: string }>();
+        for (const h of hs) {
+          if (isTestRow(h.stockName as any, h.stockSymbol as any, h.sector as any)) continue;
+          const key = normalizeSymbol(h.stockSymbol || h.stockName);
+          if (!map.has(key)) {
+            map.set(key, { stockName: h.stockName, stockSymbol: key, percentage: h.percentage, sector: h.sector });
+          }
+        }
+        return map;
       };
 
       if (fromDate && toDate) {
@@ -146,12 +190,18 @@ export class PortfolioChangeService {
       // Prefer HoldingSnapshot data; fallback to DailySnapshot.topHoldings
       let baseMap = await holdingsMapFromHS(baseSnapshot.date);
       if (baseMap.size === 0) {
-        baseMap = new Map((baseSnapshot.topHoldings || []).map(h => [h.stockSymbol, { stockName: h.stockName, stockSymbol: h.stockSymbol, percentage: h.percentage, sector: h.sector }]));
+        baseMap = new Map((baseSnapshot.topHoldings || []).map(h => {
+          const key = normalizeSymbol(h.stockSymbol || h.stockName);
+          return [key, { stockName: h.stockName, stockSymbol: key, percentage: h.percentage, sector: h.sector }] as const;
+        }));
       }
 
       let targetMap = await holdingsMapFromHS(targetSnapshot.date);
       if (targetMap.size === 0) {
-        targetMap = new Map((targetSnapshot.topHoldings || []).map(h => [h.stockSymbol, { stockName: h.stockName, stockSymbol: h.stockSymbol, percentage: h.percentage, sector: h.sector }]));
+        targetMap = new Map((targetSnapshot.topHoldings || []).map(h => {
+          const key = normalizeSymbol(h.stockSymbol || h.stockName);
+          return [key, { stockName: h.stockName, stockSymbol: key, percentage: h.percentage, sector: h.sector }] as const;
+        }));
       }
 
       // Additions

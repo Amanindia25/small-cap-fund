@@ -500,6 +500,7 @@ export class FundScraperService {
     
     const funds = await page.evaluate(() => {
       const fundRows: FundData[] = [];
+      const seenFunds = new Set<string>(); // Track seen fund+plan combinations
       
       // Debug: Check what's actually on the page
       console.log('=== DEBUGGING PAGE STRUCTURE ===');
@@ -641,7 +642,14 @@ export class FundScraperService {
               .trim();
             
             // Create a unique fund identifier that includes plan type
-            const fundIdentifier = `${fundName} (${planType})`;
+            const fundIdentifier = `${cleanFundName} (${planType})`;
+            
+            // Skip if we've already seen this fund+plan combination
+            if (seenFunds.has(fundIdentifier)) {
+              console.log(`Skipping duplicate fund: ${fundIdentifier}`);
+              return;
+            }
+            seenFunds.add(fundIdentifier);
             
             let crisilRating: number | undefined;
             let turnoverRatio: number | undefined;
