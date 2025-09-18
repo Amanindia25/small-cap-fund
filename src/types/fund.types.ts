@@ -97,3 +97,117 @@ export interface ScrapingResult {
   timestamp: Date;
   totalFunds: number;
 }
+
+export interface StockData {
+  stockName: string;
+  stockSymbol: string;
+  screenerUrl?: string;
+  currentPrice?: number;
+  marketCap?: number;
+  pe?: number;
+  pb?: number;
+  debtToEquity?: number;
+  roe?: number;
+  roa?: number;
+  salesGrowth?: number;
+  profitGrowth?: number;
+  sector: string;
+  industry?: string;
+  faceValue?: number;
+  bookValue?: number;
+  dividendYield?: number;
+  eps?: number;
+  priceToSales?: number;
+  evToEbitda?: number;
+  currentRatio?: number;
+  quickRatio?: number;
+  debtToAssets?: number;
+  interestCoverage?: number;
+  operatingMargin?: number;
+  netProfitMargin?: number;
+  returnOnCapitalEmployed?: number;
+  inventoryTurnover?: number;
+  receivablesTurnover?: number;
+  assetTurnover?: number;
+  workingCapital?: number;
+  freeCashFlow?: number;
+  operatingCashFlow?: number;
+  investingCashFlow?: number;
+  financingCashFlow?: number;
+  netCashFlow?: number;
+  cashAndEquivalents?: number;
+  totalDebt?: number;
+  totalEquity?: number;
+  totalAssets?: number;
+  totalRevenue?: number;
+  netProfit?: number;
+  operatingIncome?: number;
+  ebitda?: number;
+  ebit?: number;
+  grossProfit?: number;
+  costOfGoodsSold?: number;
+  sellingGeneralAdminExpenses?: number;
+  depreciation?: number;
+  interestExpense?: number;
+  taxExpense?: number;
+  sharesOutstanding?: number;
+  promoterHolding?: number;
+  fiiHolding?: number;
+  diiHolding?: number;
+  publicHolding?: number;
+  balanceSheet?: BalanceSheetTable;
+  peers?: PeersTable;
+  cashFlow?: GenericTable;
+  profitLoss?: GenericTable;
+  ratios?: GenericTable;
+  investors?: GenericTable;
+  quarters?: GenericTable;
+  analysis?: AnalysisData;
+}
+
+export interface StockScrapingResult {
+  success: boolean;
+  data: StockData[];
+  error?: string;
+  timestamp: Date;
+  totalStocks: number;
+}
+
+export interface BalanceSheetRow {
+  label: string;
+  values: number[];
+}
+
+export interface BalanceSheetTable {
+  headers: string[];
+  rows: BalanceSheetRow[];
+  unit?: string;
+  scope?: 'Consolidated' | 'Standalone';
+}
+
+export interface PeersRow {
+  label: string; // company name
+  values: number[]; // numeric columns from peers table
+}
+
+export interface PeersTable {
+  headers: string[];
+  rows: PeersRow[];
+}
+
+export interface GenericTableRow {
+  label: string;
+  values: number[];
+}
+
+export interface GenericTable {
+  headers: string[];
+  rows: GenericTableRow[];
+  unit?: string;
+  scope?: string;
+}
+
+export interface AnalysisData {
+  pros: string[];
+  cons: string[];
+}

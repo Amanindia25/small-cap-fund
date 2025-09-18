@@ -109,9 +109,9 @@
     },
     "returns": {
       "oneMonth": 14,
-      "threeMonth": 16,
-      "sixMonth": 13,
-      "oneYear": 16,
+      "threeMonth": 17,
+      "sixMonth": 17,
+      "oneYear": 17,
       "threeYear": 16
     }
   },
@@ -225,9 +225,9 @@
     },
     "returns": {
       "oneMonth": 14,
-      "threeMonth": 16,
-      "sixMonth": 13,
-      "oneYear": 16,
+      "threeMonth": 17,
+      "sixMonth": 17,
+      "oneYear": 17,
       "threeYear": 16
     }
   },
@@ -342,9 +342,9 @@
     },
     "returns": {
       "oneMonth": 14,
-      "threeMonth": 16,
-      "sixMonth": 13,
-      "oneYear": 16,
+      "threeMonth": 17,
+      "sixMonth": 17,
+      "oneYear": 17,
       "threeYear": 16
     }
   },
@@ -459,9 +459,9 @@
     },
     "returns": {
       "oneMonth": 14,
-      "threeMonth": 16,
-      "sixMonth": 13,
-      "oneYear": 16,
+      "threeMonth": 17,
+      "sixMonth": 17,
+      "oneYear": 17,
       "threeYear": 16
     }
   },
@@ -575,9 +575,9 @@
     },
     "returns": {
       "oneMonth": 14,
-      "threeMonth": 16,
-      "sixMonth": 13,
-      "oneYear": 16,
+      "threeMonth": 17,
+      "sixMonth": 17,
+      "oneYear": 17,
       "threeYear": 16
     }
   },
@@ -691,9 +691,9 @@
     },
     "returns": {
       "oneMonth": 14,
-      "threeMonth": 16,
-      "sixMonth": 13,
-      "oneYear": 16,
+      "threeMonth": 17,
+      "sixMonth": 17,
+      "oneYear": 17,
       "threeYear": 16
     }
   },
@@ -808,9 +808,9 @@
     },
     "returns": {
       "oneMonth": 14,
-      "threeMonth": 16,
-      "sixMonth": 13,
-      "oneYear": 16,
+      "threeMonth": 17,
+      "sixMonth": 17,
+      "oneYear": 17,
       "threeYear": 16
     }
   },
@@ -925,9 +925,126 @@
     },
     "returns": {
       "oneMonth": 14,
-      "threeMonth": 16,
-      "sixMonth": 13,
-      "oneYear": 16,
+      "threeMonth": 17,
+      "sixMonth": 17,
+      "oneYear": 17,
+      "threeYear": 16
+    }
+  },
+  {
+    "schemeName": "Bank of India",
+    "crisilRating": 3,
+    "portfolio": {
+      "turnoverRatio": 44,
+      "equityHolding": 92.24,
+      "numberOfStocks": 77,
+      "debtHolding": 0.95,
+      "numberOfDebtHoldings": 77,
+      "cashHolding": 6.81
+    },
+    "planType": "Direct Plan",
+    "isSponsored": false,
+    "individualHoldings": [
+      {
+        "stockName": "CreditAccess Grameen Ltd.",
+        "stockSymbol": "CreditAcce",
+        "percentage": 3.19,
+        "sector": "Microfinance institutions",
+        "marketValue": 599.2,
+        "quantity": 4.28,
+        "oneMonthChange": 0.66
+      },
+      {
+        "stockName": "Quality Power Electrical Equipments Ltd.",
+        "stockSymbol": "Quality Po",
+        "percentage": 3.03,
+        "sector": "Heavy electrical equipment",
+        "marketValue": 570,
+        "quantity": 7.27,
+        "oneMonthChange": 0.11
+      },
+      {
+        "stockName": "Lloyds Metals And Energy Ltd.",
+        "stockSymbol": "Lloyds Met",
+        "percentage": 2.91,
+        "sector": "Sponge iron",
+        "marketValue": 547.7,
+        "quantity": 4.25,
+        "oneMonthChange": -0.39
+      },
+      {
+        "stockName": "Ami Organics Ltd.",
+        "stockSymbol": "Ami Organi",
+        "percentage": 2.81,
+        "sector": "Pharmaceuticals",
+        "marketValue": 527.5,
+        "quantity": 3.75,
+        "oneMonthChange": 0.24
+      },
+      {
+        "stockName": "Eris Lifesciences Ltd.",
+        "stockSymbol": "Eris Lifes",
+        "percentage": 2.59,
+        "sector": "Pharmaceuticals",
+        "marketValue": 486.2,
+        "quantity": 2.7,
+        "oneMonthChange": 0.08
+      },
+      {
+        "stockName": "Kaynes Technology India Private Ltd.",
+        "stockSymbol": "Kaynes Tec",
+        "percentage": 2.44,
+        "sector": "Industrial products",
+        "marketValue": 459.2,
+        "quantity": 75,
+        "oneMonthChange": 0.05
+      },
+      {
+        "stockName": "Syrma SGS Technology Ltd.",
+        "stockSymbol": "Syrma SGS ",
+        "percentage": 2.34,
+        "sector": "Industrial products",
+        "marketValue": 440.1,
+        "quantity": 5.84,
+        "oneMonthChange": 0.06
+      },
+      {
+        "stockName": "Siemens Energy India Ltd.",
+        "stockSymbol": "Siemens En",
+        "percentage": 2.27,
+        "sector": "Power generation",
+        "marketValue": 426.7,
+        "quantity": 1.26,
+        "oneMonthChange": 0.16
+      },
+      {
+        "stockName": "Housing & Urban Development Corporation Ltd.",
+        "stockSymbol": "Housing & ",
+        "percentage": 2.18,
+        "sector": "Financial institution",
+        "marketValue": 409,
+        "quantity": 20,
+        "oneMonthChange": -0.01
+      },
+      {
+        "stockName": "Ambuja Cements Ltd.",
+        "stockSymbol": "Ambuja Cem",
+        "percentage": 2.15,
+        "sector": "Cement & cement products",
+        "marketValue": 403.8,
+        "quantity": 7.17,
+        "oneMonthChange": -0.04
+      }
+    ],
+    "portfolioSummary": {
+      "equityHolding": 92.24,
+      "numberOfStocks": 77
+    },
+    "returns": {
+      "oneMonth": 14,
+      "threeMonth": 17,
+      "sixMonth": 17,
+      "oneYear": 17,
       "threeYear": 16
     }
   },
@@ -1042,126 +1159,9 @@
     },
     "returns": {
       "oneMonth": 14,
-      "threeMonth": 16,
-      "sixMonth": 13,
-      "oneYear": 16,
-      "threeYear": 16
-    }
-  },
-  {
-    "schemeName": "Bank of India",
-    "crisilRating": 3,
-    "portfolio": {
-      "turnoverRatio": 44,
-      "equityHolding": 92.24,
-      "numberOfStocks": 77,
-      "debtHolding": 0.95,
-      "numberOfDebtHoldings": 77,
-      "cashHolding": 6.81
-    },
-    "planType": "Direct Plan",
-    "isSponsored": false,
-    "individualHoldings": [
-      {
-        "stockName": "CreditAccess Grameen Ltd.",
-        "stockSymbol": "CreditAcce",
-        "percentage": 3.19,
-        "sector": "Microfinance institutions",
-        "marketValue": 599.2,
-        "quantity": 4.28,
-        "oneMonthChange": 0.66
-      },
-      {
-        "stockName": "Quality Power Electrical Equipments Ltd.",
-        "stockSymbol": "Quality Po",
-        "percentage": 3.03,
-        "sector": "Heavy electrical equipment",
-        "marketValue": 570,
-        "quantity": 7.27,
-        "oneMonthChange": 0.11
-      },
-      {
-        "stockName": "Lloyds Metals And Energy Ltd.",
-        "stockSymbol": "Lloyds Met",
-        "percentage": 2.91,
-        "sector": "Sponge iron",
-        "marketValue": 547.7,
-        "quantity": 4.25,
-        "oneMonthChange": -0.39
-      },
-      {
-        "stockName": "Ami Organics Ltd.",
-        "stockSymbol": "Ami Organi",
-        "percentage": 2.81,
-        "sector": "Pharmaceuticals",
-        "marketValue": 527.5,
-        "quantity": 3.75,
-        "oneMonthChange": 0.24
-      },
-      {
-        "stockName": "Eris Lifesciences Ltd.",
-        "stockSymbol": "Eris Lifes",
-        "percentage": 2.59,
-        "sector": "Pharmaceuticals",
-        "marketValue": 486.2,
-        "quantity": 2.7,
-        "oneMonthChange": 0.08
-      },
-      {
-        "stockName": "Kaynes Technology India Private Ltd.",
-        "stockSymbol": "Kaynes Tec",
-        "percentage": 2.44,
-        "sector": "Industrial products",
-        "marketValue": 459.2,
-        "quantity": 75,
-        "oneMonthChange": 0.05
-      },
-      {
-        "stockName": "Syrma SGS Technology Ltd.",
-        "stockSymbol": "Syrma SGS ",
-        "percentage": 2.34,
-        "sector": "Industrial products",
-        "marketValue": 440.1,
-        "quantity": 5.84,
-        "oneMonthChange": 0.06
-      },
-      {
-        "stockName": "Siemens Energy India Ltd.",
-        "stockSymbol": "Siemens En",
-        "percentage": 2.27,
-        "sector": "Power generation",
-        "marketValue": 426.7,
-        "quantity": 1.26,
-        "oneMonthChange": 0.16
-      },
-      {
-        "stockName": "Housing & Urban Development Corporation Ltd.",
-        "stockSymbol": "Housing & ",
-        "percentage": 2.18,
-        "sector": "Financial institution",
-        "marketValue": 409,
-        "quantity": 20,
-        "oneMonthChange": -0.01
-      },
-      {
-        "stockName": "Ambuja Cements Ltd.",
-        "stockSymbol": "Ambuja Cem",
-        "percentage": 2.15,
-        "sector": "Cement & cement products",
-        "marketValue": 403.8,
-        "quantity": 7.17,
-        "oneMonthChange": -0.04
-      }
-    ],
-    "portfolioSummary": {
-      "equityHolding": 92.24,
-      "numberOfStocks": 77
-    },
-    "returns": {
-      "oneMonth": 14,
-      "threeMonth": 16,
-      "sixMonth": 13,
-      "oneYear": 16,
+      "threeMonth": 17,
+      "sixMonth": 17,
+      "oneYear": 17,
       "threeYear": 16
     }
   }

@@ -14,7 +14,9 @@
     "api-test": "set TEST_MODE=true && ts-node src/api/server.ts",
     "api-build": "npm run build && node dist/api/server.js",
     "backfill:yesterday": "ts-node src/scripts/backfill-yesterday.ts",
-    "mutate:snapshot": "ts-node src/scripts/mutate-snapshot.ts"
+    "mutate:snapshot": "ts-node src/scripts/mutate-snapshot.ts",
+    "test:stock-scraping": "ts-node src/scripts/test-stock-scraping.ts",
+    "scrape:stocks": "ts-node src/scripts/run-stock-scraping.ts"
   },
   "dependencies": {
     "cheerio": "^1.0.0-rc.12",

@@ -7,8 +7,11 @@ import { TestSchedulerService } from '../services/test-scheduler.service';
 import { DailyScraperService } from '../services/daily-scraper.service';
 import { HistoricalDataService } from '../services/historical-data.service';
 import { ScrapingStatusService } from '../services/scraping-status.service';
+import { StockSchedulerService } from '../services/stock-scheduler.service';
+import { ScreenerScraperService } from '../services/screener-scraper.service';
 import { connectDB } from '../config/database';
 import { IHolding } from '../models/Holding';
+import { Stock } from '../models/Stock';
 
 const app = express();
 const PORT = 5000;
@@ -25,6 +28,8 @@ const testScheduler = new TestSchedulerService();
 const dailyScraper = new DailyScraperService();
 const historicalDataService = new HistoricalDataService();
 const scrapingStatusService = ScrapingStatusService.getInstance();
+const stockScheduler = new StockSchedulerService();
+const screenerScraper = new ScreenerScraperService();
 
 // Routes
 app.get('/api/funds', async (req, res) => {
@@ -376,6 +381,141 @@ app.get('/api/admin/scraping-progress', async (req, res) => {
   }
 });
 
+// Stock scraping endpoints
+app.get('/api/stocks', async (req, res) => {
+  try {
+    const { limit = 50, page = 1 } = req.query;
+    const skip = (Number(page) - 1) * Number(limit);
+    
+    const stocks = await Stock.find()
+      .sort({ updatedAt: -1 })
+      .skip(skip)
+      .limit(Number(limit));
+    
+    const total = await Stock.countDocuments();
+    
+    res.json({
+      success: true,
+      data: stocks,
+      pagination: {
+        page: Number(page),
+        limit: Number(limit),
+        total,
+        pages: Math.ceil(total / Number(limit))
+      }
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch stocks'
+    });
+  }
+});
+
+app.get('/api/stocks/:symbol', async (req, res) => {
+  try {
+    const { symbol } = req.params;
+    const stock = await Stock.findOne({ stockSymbol: symbol });
+    
+    if (!stock) {
+      return res.status(404).json({
+        success: false,
+        error: 'Stock not found'
+      });
+    }
+    
+    res.json({
+      success: true,
+      data: stock
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch stock details'
+    });
+  }
+});
+
+app.post('/api/admin/trigger-stock-scraping', async (req, res) => {
+  try {
+    const status = stockScheduler.getScrapingStatus();
+    
+    if (status.isRunning) {
+      return res.status(409).json({
+        success: false,
+        error: 'Stock scraping is already running'
+      });
+    }
+    
+    // Start scraping in background
+    stockScheduler.runDailyStockScraping().catch(error => {
+      console.error('Background stock scraping error:', error);
+    });
+    
+    res.json({
+      success: true,
+      message: 'Stock scraping started in background'
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: 'Failed to trigger stock scraping'
+    });
+  }
+});
+
+app.get('/api/admin/stock-scraping-status', async (req, res) => {
+  try {
+    const status = stockScheduler.getScrapingStatus();
+    res.json({
+      success: true,
+      data: status
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get stock scraping status'
+    });
+  }
+});
+
+app.post('/api/admin/scrape-specific-stocks', async (req, res) => {
+  try {
+    const { stocks } = req.body;
+    
+    if (!stocks || !Array.isArray(stocks)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid stocks data. Expected array of stocks with stockName, stockSymbol, and sector'
+      });
+    }
+    
+    const status = stockScheduler.getScrapingStatus();
+    
+    if (status.isRunning) {
+      return res.status(409).json({
+        success: false,
+        error: 'Stock scraping is already running'
+      });
+    }
+    
+    // Start scraping specific stocks in background
+    stockScheduler.runStockScrapingForStocks(stocks).catch(error => {
+      console.error('Background stock scraping error:', error);
+    });
+    
+    res.json({
+      success: true,
+      message: `Stock scraping started for ${stocks.length} stocks in background`
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: 'Failed to trigger stock scraping'
+    });
+  }
+});
+
 // Historical Data APIs
 app.get('/api/funds/:id/history', async (req, res) => {
   try {
@@ -551,6 +691,7 @@ async function startServer() {
     } else {
       console.log('🕐 Starting in PRODUCTION MODE - Daily tasks enabled');
       dailyScheduler.startDailyTasks();
+      stockScheduler.startDailyStockScraping();
     }
     
     app.listen(PORT, () => {
@@ -570,6 +711,11 @@ async function startServer() {
       console.log(`   POST /api/admin/trigger-scraping - Trigger daily scraping`);
       console.log(`   POST /api/admin/trigger-incremental - Trigger incremental update`);
       console.log(`   GET /api/admin/scraping-status - Get scraping status`);
+      console.log(`   GET /api/stocks - List all stocks`);
+      console.log(`   GET /api/stocks/:symbol - Get stock details`);
+      console.log(`   POST /api/admin/trigger-stock-scraping - Trigger stock scraping`);
+      console.log(`   GET /api/admin/stock-scraping-status - Get stock scraping status`);
+      console.log(`   POST /api/admin/scrape-specific-stocks - Scrape specific stocks`);
     });
   } catch (error) {
     console.error('❌ Failed to start server:', error);
