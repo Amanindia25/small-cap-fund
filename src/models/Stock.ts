@@ -109,7 +109,7 @@ export interface IStock extends Document {
 }
 
 const StockSchema = new Schema<IStock>({
-  stockName: { type: String, required: true, unique: true },
+  stockName: { type: String, required: true },
   stockSymbol: { type: String, required: true, unique: true },
   screenerUrl: { type: String },
   currentPrice: { type: Number },
