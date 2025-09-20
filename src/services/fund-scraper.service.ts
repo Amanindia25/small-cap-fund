@@ -1068,6 +1068,30 @@ export class FundScraperService {
 
   async scrapePortfolioTab(fundPage: Page): Promise<{ holdings: StockHolding[], portfolioSummary?: PortfolioSummary }> {
     try {
+      // Ensure we're on the Portfolio overview page (top navbar link)
+      try {
+        console.log('🔗 Ensuring Portfolio overview page is open...');
+        const clickedNavbarPortfolio = await fundPage.evaluate(() => {
+          const link = document.querySelector('a[href*="/portfolio-overview/"]') as HTMLElement | null;
+          if (!link) return false;
+          // Visual banner for the user
+          const banner = document.createElement('div');
+          banner.style.cssText = 'position:fixed;top:10px;left:50%;transform:translateX(-50%);background:#3b82f6;color:#fff;padding:8px 14px;border-radius:8px;font-weight:700;z-index:10000;box-shadow:0 4px 12px rgba(0,0,0,.25)';
+          banner.textContent = 'Clicking Portfolio (top navbar)';
+          document.body.appendChild(banner);
+          // Highlight and scroll into view
+          const prev = link.style.cssText;
+          link.style.cssText = prev + ';outline:3px solid #3b82f6;outline-offset:2px;background:rgba(59,130,246,.1)';
+          link.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          setTimeout(() => { link.click(); banner.remove(); }, 800);
+          return true;
+        });
+        if (clickedNavbarPortfolio) {
+          try { await fundPage.waitForNavigation({ waitUntil: 'domcontentloaded', timeout: 15000 }); } catch {}
+          console.log('✅ Navigated to Portfolio overview');
+        }
+      } catch {}
+
       console.log('📊 Step 1: Looking for Portfolio/Holdings tab...');
       
       // Try to find and click on "Portfolio" or "Holdings" tab with visual feedback
@@ -1220,6 +1244,87 @@ export class FundScraperService {
         console.log('⚠️ No populated holdings rows detected:', error);
       }
 
+      // Explicitly click the "Complete Holding" tab to load ALL holdings
+      console.log('📊 Step 2.5: Clicking "Complete Holding" tab to load full holdings...');
+      try {
+        const clickedComplete = await fundPage.evaluate(() => {
+          const tryClick = (el: Element | null) => { if (!el) return false; (el as HTMLElement).click(); return true; };
+
+          // Common selectors for the tab
+          const selectors = [
+            'a[data-tabname="complete-holding"]',
+            'li[data-tabname="complete-holding"] a',
+            'a[href="#equity_tab2"]',
+            'a[href*="complete"]',
+          ];
+          for (const sel of selectors) {
+            const el = document.querySelector(sel) as HTMLElement | null;
+            if (el) {
+              // Visible highlight before clicking
+              const banner = document.createElement('div');
+              banner.style.cssText = 'position:fixed;top:44px;left:50%;transform:translateX(-50%);background:#10b981;color:#fff;padding:8px 14px;border-radius:8px;font-weight:700;z-index:10000;box-shadow:0 4px 12px rgba(0,0,0,.25)';
+              banner.textContent = 'Opening Complete Holding tab';
+              document.body.appendChild(banner);
+              const prev = el.style.cssText;
+              el.style.cssText = prev + ';outline:3px solid #10b981;outline-offset:2px;background:rgba(16,185,129,.1)';
+              el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              setTimeout(() => { (el as HTMLElement).click(); banner.remove(); }, 700);
+              return true;
+            }
+          }
+
+          // Fallback: search by text
+          const links = Array.from(document.querySelectorAll('a, button, li, .nav-link')) as HTMLElement[];
+          const byText = links.find(l => (l.textContent || '').toLowerCase().includes('complete') && (l.textContent || '').toLowerCase().includes('holding'));
+          if (byText) {
+            const banner = document.createElement('div');
+            banner.style.cssText = 'position:fixed;top:44px;left:50%;transform:translateX(-50%);background:#10b981;color:#fff;padding:8px 14px;border-radius:8px;font-weight:700;z-index:10000;box-shadow:0 4px 12px rgba(0,0,0,.25)';
+            banner.textContent = 'Opening Complete Holding tab';
+            document.body.appendChild(banner);
+            const prev = byText.style.cssText;
+            byText.style.cssText = prev + ';outline:3px solid #10b981;outline-offset:2px;background:rgba(16,185,129,.1)';
+            byText.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            setTimeout(() => { byText.click(); banner.remove(); }, 700);
+            return true;
+          }
+
+          return false;
+        });
+
+        if (clickedComplete) {
+          console.log('✅ Clicked on Complete Holding tab');
+          // Wait for the specific tab content to be active and populated
+          await fundPage.waitForFunction(() => {
+            const active = document.querySelector('#equity_tab2, .tab-pane.active[id*="equity_tab2"], .tab-pane.active[data-tabname*="complete" i]');
+            if (!active) return false;
+            const tables = active.querySelectorAll('table');
+            const hasRows = Array.from(tables).some(t => (t.querySelector('tbody') || t).querySelectorAll('tr').length > 0);
+            return hasRows;
+          }, { timeout: 15000 }).catch(() => {});
+          console.log('✅ Complete holdings content detected');
+          // Visual confirmation for user that complete holdings loaded
+          await fundPage.evaluate(() => {
+            const active = document.querySelector('#equity_tab2, .tab-pane.active[id*="equity_tab2"], .tab-pane.active[data-tabname*="complete" i]') as HTMLElement | null;
+            if (!active) return;
+            const firstTable = active.querySelector('table') as HTMLElement | null;
+            if (firstTable) {
+              const prev = firstTable.style.cssText;
+              firstTable.style.cssText = prev + ';outline:3px solid #f59e0b;box-shadow:0 0 18px rgba(245,158,11,.45);background:rgba(245,158,11,.05)';
+              firstTable.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+            const banner = document.createElement('div');
+            banner.style.cssText = 'position:fixed;top:80px;left:50%;transform:translateX(-50%);background:#f59e0b;color:#111827;padding:8px 14px;border-radius:8px;font-weight:700;z-index:10000;box-shadow:0 4px 12px rgba(0,0,0,.25)';
+            banner.textContent = 'Complete Holdings loaded';
+            document.body.appendChild(banner);
+            setTimeout(() => { banner.remove(); }, 1800);
+          });
+        } else {
+          console.log('ℹ️ Complete Holding tab not found; proceeding with available holdings');
+        }
+      } catch (error) {
+        console.log('⚠️ Error clicking Complete Holding tab:', error);
+      }
+
       // Check if "View complete holding" link exists and click it
       console.log('📊 Step 3: Looking for "View complete holding" link...');
       const hasCompleteHoldings = await fundPage.evaluate(() => {
@@ -1287,7 +1392,11 @@ export class FundScraperService {
         
         console.log('🔍 Step 4a: Identifying the correct table by header labels...');
         // Identify the correct table by header labels
-        const candidateTables = Array.from(document.querySelectorAll('.table-responsive table, table')) as HTMLTableElement[];
+        // Prefer tables inside the active Complete Holding tab if present
+        const completeTab = document.querySelector('#equity_tab2, .tab-pane.active[id*="equity_tab2"], .tab-pane.active[data-tabname*="complete" i]') as HTMLElement | null;
+        const candidateTables = completeTab
+          ? Array.from(completeTab.querySelectorAll('table')) as HTMLTableElement[]
+          : Array.from(document.querySelectorAll('.table-responsive table, table')) as HTMLTableElement[];
         console.log(`📋 Found ${candidateTables.length} candidate tables`);
         
         let table: HTMLTableElement | null = null;
@@ -1333,6 +1442,15 @@ export class FundScraperService {
         }
         
         console.log('✅ Found holdings table, extracting data...');
+        // Show count badge for user
+        try {
+          const rowsForCount = Array.from((table.querySelector('tbody') || table).querySelectorAll('tr'));
+          const banner = document.createElement('div');
+          banner.style.cssText = 'position:fixed;top:110px;left:50%;transform:translateX(-50%);background:#111827;color:#ffffff;padding:8px 14px;border-radius:8px;font-weight:700;z-index:10000;box-shadow:0 4px 12px rgba(0,0,0,.25)';
+          banner.textContent = `Loaded ${rowsForCount.length} holdings rows`;
+          document.body.appendChild(banner);
+          setTimeout(() => { banner.remove(); }, 1800);
+        } catch {}
         
         if (table) {
           const body = table.querySelector('tbody') || table;
@@ -1396,9 +1514,28 @@ export class FundScraperService {
                 return;
               }
               
+              // Generate a more unique stock symbol
+              const generateStockSymbol = (name: string): string => {
+                // Remove common suffixes and clean the name
+                const cleanName = name
+                  .replace(/\s+(Limited|Ltd|Ltd\.|Corporation|Corp|Corp\.|Inc|Inc\.|Company|Co|Co\.)$/i, '')
+                  .replace(/[^a-zA-Z0-9\s]/g, '')
+                  .trim();
+                
+                // Take first 3 words and create abbreviation
+                const words = cleanName.split(/\s+/).slice(0, 3);
+                const symbol = words.map(word => word.substring(0, 3)).join('').toUpperCase();
+                
+                // Ensure minimum length and add hash for uniqueness
+                const baseSymbol = symbol.length >= 6 ? symbol.substring(0, 6) : symbol + 'X'.repeat(6 - symbol.length);
+                const hash = Math.abs(name.split('').reduce((a, b) => a + b.charCodeAt(0), 0)) % 1000;
+                
+                return `${baseSymbol}${hash.toString().padStart(3, '0')}`;
+              };
+
               const holding: StockHolding = {
                 stockName,
-                stockSymbol: stockName.substring(0, 10),
+                stockSymbol: generateStockSymbol(stockName),
                 percentage,
                 sector: sectorText || 'Unknown',
                 marketValue,

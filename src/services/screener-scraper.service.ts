@@ -236,10 +236,21 @@ export class ScreenerScraperService {
               const descText = parentEl ? (parentEl.textContent || '') : '';
               const descNorm = normalize(descText);
               
-              // Look for "formerly known as" patterns
+              // Look for "formerly known as" patterns - ENHANCED
               const formerlyMatch = descText.match(/formerly known as\s+([^)]+)/i);
               if (formerlyMatch) {
                 const formerName = normalize(formerlyMatch[1]);
+                if (formerName === wantNorm || formerName.includes(wantNorm) || wantNorm.includes(formerName)) {
+                  exact = anchor.getAttribute('href');
+                  break;
+                }
+              }
+
+              // NEW: Check if current name matches former name in description
+              const currentNameMatch = descText.match(/\(Formerly known as\s+([^)]+)\)/i);
+              if (currentNameMatch) {
+                const currentName = normalize(raw);
+                const formerName = normalize(currentNameMatch[1]);
                 if (formerName === wantNorm || formerName.includes(wantNorm) || wantNorm.includes(formerName)) {
                   exact = anchor.getAttribute('href');
                   break;
@@ -271,7 +282,8 @@ export class ScreenerScraperService {
               const combinedScore = (keyWordScore * 0.7) + (tokenScore * 0.3);
               const lengthRatio = Math.min(allTokens.length, wantTokens.length) / Math.max(allTokens.length, wantTokens.length);
               
-              if (combinedScore >= 0.6 && lengthRatio >= 0.4 && combinedScore > best.score) {
+              // LOWERED THRESHOLD: More lenient matching
+              if (combinedScore >= 0.4 && lengthRatio >= 0.3 && combinedScore > best.score) {
                 best = { href: anchor.getAttribute('href'), score: combinedScore };
               }
             }
@@ -358,10 +370,21 @@ export class ScreenerScraperService {
           const parentEl = anchor.closest('div, li, tr') || anchor.parentElement;
           const descText = parentEl ? (parentEl.textContent || '') : '';
           
-          // Look for "formerly known as" patterns
+          // Look for "formerly known as" patterns - ENHANCED
           const formerlyMatch = descText.match(/formerly known as\s+([^)]+)/i);
           if (formerlyMatch) {
             const formerName = normalize(formerlyMatch[1]);
+            if (formerName === wantNorm || formerName.includes(wantNorm) || wantNorm.includes(formerName)) {
+              exactHref = anchor.getAttribute('href');
+              break;
+            }
+          }
+
+          // NEW: Check if current name matches former name in description
+          const currentNameMatch = descText.match(/\(Formerly known as\s+([^)]+)\)/i);
+          if (currentNameMatch) {
+            const currentName = normalize(rawText);
+            const formerName = normalize(currentNameMatch[1]);
             if (formerName === wantNorm || formerName.includes(wantNorm) || wantNorm.includes(formerName)) {
               exactHref = anchor.getAttribute('href');
               break;
@@ -394,7 +417,8 @@ export class ScreenerScraperService {
           const combinedScore = (keyWordScore * 0.7) + (tokenScore * 0.3);
           const lengthRatio = Math.min(allTokens.length, wantTokens.length) / Math.max(allTokens.length, wantTokens.length);
           
-          if (combinedScore >= 0.6 && lengthRatio >= 0.4 && combinedScore > bestScore) {
+          // LOWERED THRESHOLD: More lenient matching
+          if (combinedScore >= 0.4 && lengthRatio >= 0.3 && combinedScore > bestScore) {
             bestScore = combinedScore;
             bestHref = anchor.getAttribute('href');
           }
@@ -424,6 +448,7 @@ export class ScreenerScraperService {
               .filter(t => !stop.has(t));
             const wantNorm = normalize(query);
             const wantTokens = toTokens(query);
+            const keyWords = wantTokens.filter(t => t.length > 2);
             try {
               const res = await fetch(`/api/company/search/?q=${encodeURIComponent(query)}`, { credentials: 'include' });
               if (!res.ok) return null;
@@ -439,12 +464,29 @@ export class ScreenerScraperService {
                 if (name === wantNorm || name === wantNorm.replace(/\blimited\b/g, 'ltd') || name === wantNorm.replace(/\bltd\b/g, 'limited')) {
                   exact = href; break;
                 }
+                
+                // Enhanced matching with key words
                 const tokens = toTokens(item?.name ?? '');
+                let keyWordMatches = 0;
+                keyWords.forEach(kw => {
+                  if (tokens.some(t => t.includes(kw) || kw.includes(t))) {
+                    keyWordMatches++;
+                  }
+                });
+                const keyWordScore = keyWordMatches / Math.max(keyWords.length, 1);
+                
                 const setW = new Set(wantTokens); const setT = new Set(tokens);
                 let overlap = 0; setW.forEach(t => { if (setT.has(t)) overlap++; });
                 const denom = Math.max(setW.size, setT.size, 1);
-                const score = overlap / denom;
-                if (score >= 0.7 && score > best.score) best = { href, score };
+                const tokenScore = overlap / denom;
+                
+                const combinedScore = (keyWordScore * 0.7) + (tokenScore * 0.3);
+                const lengthRatio = Math.min(tokens.length, wantTokens.length) / Math.max(tokens.length, wantTokens.length);
+                
+                // LOWERED THRESHOLD: More lenient matching
+                if (combinedScore >= 0.4 && lengthRatio >= 0.3 && combinedScore > best.score) {
+                  best = { href, score: combinedScore };
+                }
               }
               return exact || best.href || null;
             } catch { return null; }
@@ -494,20 +536,99 @@ export class ScreenerScraperService {
       .trim();
   }
 
+  private generateStockSymbol(name: string): string {
+    console.log(`🔧 Generating symbol for: "${name}"`);
+    
+    // Remove common suffixes and clean the name
+    const cleanName = name
+      .replace(/\s+(Limited|Ltd|Ltd\.|Corporation|Corp|Corp\.|Inc|Inc\.|Company|Co|Co\.)$/i, '')
+      .replace(/[^a-zA-Z0-9\s]/g, '')
+      .trim();
+    
+    console.log(`🔧 Cleaned name: "${cleanName}"`);
+    
+    // Take first 3 words and create abbreviation
+    const words = cleanName.split(/\s+/).slice(0, 3);
+    const symbol = words.map(word => word.substring(0, 3)).join('').toUpperCase();
+    
+    console.log(`🔧 Words: [${words.join(', ')}], Symbol: "${symbol}"`);
+    
+    // Ensure minimum length and add hash for uniqueness
+    const baseSymbol = symbol.length >= 6 ? symbol.substring(0, 6) : symbol + 'X'.repeat(6 - symbol.length);
+    const hash = Math.abs(name.split('').reduce((a, b) => a + b.charCodeAt(0), 0)) % 1000;
+    
+    const finalSymbol = `${baseSymbol}${hash.toString().padStart(3, '0')}`;
+    console.log(`🔧 Final symbol: "${finalSymbol}"`);
+    
+    return finalSymbol;
+  }
+
   // Extract stock details from screener.in page
   private async extractStockDetails(page: Page, stockName: string, stockSymbol: string, sector: string): Promise<StockData | null> {
     try {
       console.log(`📊 Extracting details for: ${stockName}`);
       
+      // Wait for page to load
+      await page.waitForSelector('body', { timeout: 10000 });
+
+      // Extract the actual stock name from the page
+      let actualStockName = stockName;
+      try {
+        const nameSelectors = [
+          'h1',
+          '.company-name',
+          '.stock-name',
+          '[data-testid="company-name"]',
+          '.page-title',
+          'title'
+        ];
+        
+        for (const selector of nameSelectors) {
+          const element = await page.$(selector);
+          if (element) {
+            const text = await page.evaluate(el => el.textContent, element);
+            if (text && text.trim() && !text.includes('Screener') && !text.includes('Login')) {
+              actualStockName = text.trim();
+              console.log(`📝 Extracted stock name from page: ${actualStockName}`);
+              break;
+            }
+          }
+        }
+      } catch (error) {
+        console.log('Could not extract stock name from page, using provided name');
+      }
+
+      // Generate proper stock symbol if needed
+      let actualStockSymbol = stockSymbol;
+      console.log(`🔍 Original stock symbol: "${actualStockSymbol}"`);
+      console.log(`🔍 Stock name: "${actualStockName}"`);
+      
+      // Clean the symbol first
+      const cleanSymbol = actualStockSymbol.trim();
+      console.log(`🔧 Cleaned symbol: "${cleanSymbol}"`);
+      
+      // Always generate new symbol if current one is invalid
+      if (cleanSymbol === '#' || !cleanSymbol || cleanSymbol.length < 3 || cleanSymbol === '') {
+        actualStockSymbol = this.generateStockSymbol(actualStockName);
+        console.log(`📝 Generated stock symbol: ${actualStockSymbol}`);
+      } else {
+        console.log(`✅ Using existing stock symbol: ${cleanSymbol}`);
+        actualStockSymbol = cleanSymbol;
+      }
+      
+      // Final validation - if still invalid, force generation
+      if (!actualStockSymbol || actualStockSymbol === '#' || actualStockSymbol.length < 3) {
+        console.log(`⚠️ Symbol still invalid, forcing generation...`);
+        actualStockSymbol = this.generateStockSymbol(actualStockName);
+        console.log(`📝 Final generated symbol: ${actualStockSymbol}`);
+      }
+      
       const stockData: StockData = {
-        stockName,
-        stockSymbol,
+        stockName: actualStockName,
+        stockSymbol: actualStockSymbol,
         sector,
         screenerUrl: page.url()
       };
-
-      // Wait for page to load
-      await page.waitForSelector('body', { timeout: 10000 });
 
       // Extract basic info from header
       try {
@@ -612,12 +733,19 @@ export class ScreenerScraperService {
       // If still not on balance sheet, scroll to section and parse
       try {
         console.log('📑 Parsing balance sheet...');
-        const bsData = await this.extractBalanceSheet(page);
+        const bsData = await Promise.race([
+          this.extractBalanceSheet(page),
+          new Promise<null>((_, reject) => 
+            setTimeout(() => reject(new Error('Balance sheet extraction timeout')), 30000)
+          )
+        ]);
         if (bsData) {
           stockData.balanceSheet = bsData;
           console.log(`📄 Balance sheet rows: ${bsData.rows.length}`);
         }
-      } catch {}
+      } catch (error) {
+        console.log('⚠️ Balance sheet extraction failed or timed out:', error instanceof Error ? error.message : 'Unknown error');
+      }
 
       // Peers table extraction using section#peers
       try {
@@ -627,48 +755,57 @@ export class ScreenerScraperService {
           const a = document.querySelector('a[href="#peers"]') as HTMLElement | null;
           if (a) { a.scrollIntoView({ behavior: 'instant', block: 'center' }); a.click(); }
         });
-        await page.waitForSelector('section#peers', { timeout: 20000 }).catch(() => {});
+        await page.waitForSelector('section#peers', { timeout: 10000 }).catch(() => {});
         await page.evaluate(() => {
           const sec = document.querySelector('section#peers') as HTMLElement | null;
           if (sec) sec.scrollIntoView({ behavior: 'instant', block: 'start' });
         });
-        await this.browserManager.delay(600);
+        await this.browserManager.delay(300);
 
-        const peers = await page.evaluate(() => {
-          const normalize = (s: string) => (s || '').replace(/\s+/g, ' ').trim();
-          const section = document.querySelector('section#peers');
-          const table = section ? section.querySelector('table') : null;
-          if (!table) return null;
-          const headers: string[] = [];
-          const ths = table.querySelectorAll('thead th, thead td');
-          if (ths && ths.length > 0) ths.forEach(th => headers.push(normalize(th.textContent || '')));
-          else {
-            const fr = table.querySelector('tr');
-            if (fr) fr.querySelectorAll('th,td').forEach(th => headers.push(normalize(th.textContent || '')));
-          }
-          const rows: Array<{ label: string; values: number[] }> = [];
-          const body = table.querySelector('tbody') || table;
-          body.querySelectorAll('tr').forEach(tr => {
-            const tds = Array.from(tr.querySelectorAll('td'));
-            if (tds.length === 0) return;
-            const label = normalize(tds[1]?.textContent || tds[0]?.textContent || '');
-            if (!label) return;
-            const values: number[] = [];
-            for (let i = 2; i < tds.length; i++) {
-              const raw = normalize(tds[i].textContent || '').replace(/[₹,\s]/g, '');
-              const num = parseFloat(raw);
-              values.push(Number.isFinite(num) ? num : 0);
+        const peers = await Promise.race([
+          page.evaluate(() => {
+            const normalize = (s: string) => (s || '').replace(/\s+/g, ' ').trim();
+            const section = document.querySelector('section#peers');
+            const table = section ? section.querySelector('table') : null;
+            if (!table) return null;
+            const headers: string[] = [];
+            const ths = table.querySelectorAll('thead th, thead td');
+            if (ths && ths.length > 0) ths.forEach(th => headers.push(normalize(th.textContent || '')));
+            else {
+              const fr = table.querySelector('tr');
+              if (fr) fr.querySelectorAll('th,td').forEach(th => headers.push(normalize(th.textContent || '')));
             }
-            rows.push({ label, values });
-          });
-          return { headers, rows };
-        });
+            const rows: Array<{ label: string; values: number[] }> = [];
+            const body = table.querySelector('tbody') || table;
+            body.querySelectorAll('tr').forEach(tr => {
+              const tds = Array.from(tr.querySelectorAll('td'));
+              if (tds.length === 0) return;
+              const label = normalize(tds[1]?.textContent || tds[0]?.textContent || '');
+              if (!label) return;
+              const values: number[] = [];
+              for (let i = 2; i < tds.length; i++) {
+                const raw = normalize(tds[i].textContent || '').replace(/[₹,\s]/g, '');
+                const num = parseFloat(raw);
+                values.push(Number.isFinite(num) ? num : 0);
+              }
+              rows.push({ label, values });
+            });
+            return { headers, rows };
+          }),
+          new Promise<null>((_, reject) => 
+            setTimeout(() => reject(new Error('Peers extraction timeout')), 15000)
+          )
+        ]);
 
         if (peers && peers.rows && peers.rows.length > 0) {
           stockData.peers = peers;
           console.log(`👥 Peers rows: ${peers.rows.length}`);
+        } else {
+          console.log('⚠️ No peers data found');
         }
-      } catch {}
+      } catch (error) {
+        console.log('⚠️ Peers extraction failed or timed out:', error instanceof Error ? error.message : 'Unknown error');
+      }
 
       // Additional sections: cash-flow, profit-loss, ratios, shareholding/investors
       const parseSectionTable = async (sectionId: string, label: string): Promise<{ headers: string[]; rows: Array<{ label: string; values: number[] }> } | null> => {
@@ -825,8 +962,12 @@ export class ScreenerScraperService {
   // Extract balance sheet table from current company page
   private async extractBalanceSheet(page: Page): Promise<{ headers: string[]; rows: Array<{ label: string; values: number[] }>; unit?: string; scope?: 'Consolidated' | 'Standalone' } | null> {
     try {
+      console.log('📊 Starting balance sheet extraction...');
+      
       // Ensure we are at balance section; scroll a bit to load tables
       await this.browserManager.delay(800);
+      
+      console.log('🔄 Scrolling to balance sheet section...');
       await page.evaluate(() => {
         const sec = document.querySelector('section#balance-sheet');
         if (sec) {
@@ -837,6 +978,7 @@ export class ScreenerScraperService {
       });
       await this.browserManager.delay(500);
       
+      console.log('🔍 Looking for balance sheet table...');
       const result = await page.evaluate(() => {
         const text = (el?: Element | null) => (el?.textContent || '').trim();
         const normalize = (s: string) => s.replace(/\s+/g, ' ').trim();
@@ -854,7 +996,10 @@ export class ScreenerScraperService {
         }
         // As a last resort, pick the first table inside any section with id containing balance-sheet
         if (!table) table = document.querySelector('section[id*="balance-sheet" i] table');
-        if (!table) return null;
+        if (!table) {
+          console.log('❌ No balance sheet table found');
+          return null;
+        }
 
         const headers: string[] = [];
         const rows: Array<{ label: string; values: number[] }> = [];
@@ -900,9 +1045,15 @@ export class ScreenerScraperService {
         return { headers, rows, unit, scope };
       });
 
+      if (result) {
+        console.log(`✅ Balance sheet extracted: ${result.rows.length} rows, ${result.headers.length} columns`);
+      } else {
+        console.log('❌ Balance sheet extraction returned null');
+      }
+      
       return result;
     } catch (error) {
-      console.log('Balance sheet extraction failed');
+      console.log('❌ Balance sheet extraction failed:', error instanceof Error ? error.message : 'Unknown error');
       return null;
     }
   }
@@ -1026,13 +1177,16 @@ export class ScreenerScraperService {
   // Save stock data to database
   private async saveStockToDatabase(stockData: StockData): Promise<void> {
     try {
-      // Check if stock already exists
-      const existingStock = await Stock.findOne({ stockSymbol: stockData.stockSymbol });
+      console.log(`🔍 Attempting to save stock: ${stockData.stockName} (${stockData.stockSymbol})`);
+      
+      // Check if stock already exists (use stock name for uniqueness since symbols might be unreliable)
+      const existingStock = await Stock.findOne({ stockName: stockData.stockName });
+      console.log(`🔍 Existing stock check result:`, existingStock ? 'Found' : 'Not found');
       
       if (existingStock) {
         // Update existing stock
         await Stock.updateOne(
-          { stockSymbol: stockData.stockSymbol },
+          { stockName: stockData.stockName },
           { 
             ...stockData,
             date: new Date(),
@@ -1042,15 +1196,24 @@ export class ScreenerScraperService {
         console.log(`📝 Updated stock: ${stockData.stockName}`);
       } else {
         // Create new stock
+        console.log(`🔍 Creating new stock with data:`, {
+          stockName: stockData.stockName,
+          stockSymbol: stockData.stockSymbol,
+          sector: stockData.sector
+        });
+        
         const newStock = new Stock({
           ...stockData,
           date: new Date()
         });
-        await newStock.save();
-        console.log(`💾 Saved new stock: ${stockData.stockName}`);
+        
+        const savedStock = await newStock.save();
+        console.log(`💾 Saved new stock: ${stockData.stockName} with ID: ${savedStock._id}`);
       }
     } catch (error) {
       console.error(`❌ Error saving stock ${stockData.stockName}:`, error);
+      console.error(`❌ Error details:`, error instanceof Error ? error.message : String(error));
+      console.error(`❌ Stock data:`, stockData);
     }
   }
 
