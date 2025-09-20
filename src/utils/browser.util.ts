@@ -33,8 +33,26 @@ export class BrowserManager {
 
     // Add Render-specific configuration
     if (process.env.NODE_ENV === 'production') {
-      // Clear any existing executablePath to force Puppeteer to find Chrome
-      delete launchOptions.executablePath;
+      // Force Puppeteer to use the installed Chrome with proper permissions
+      const fs = require('fs');
+      const path = require('path');
+      
+      const chromePath = '/opt/render/.cache/puppeteer/chrome/linux-140.0.7339.80/chrome-linux64/chrome';
+      
+      if (fs.existsSync(chromePath)) {
+        // Make Chrome executable
+        try {
+          fs.chmodSync(chromePath, '755');
+          console.log('✅ Made Chrome executable');
+        } catch (error) {
+          console.log('⚠️ Could not change Chrome permissions:', error.message);
+        }
+        
+        launchOptions.executablePath = chromePath;
+        console.log(`🔧 Using Chrome at: ${chromePath}`);
+      } else {
+        console.log('⚠️ Chrome not found, using Puppeteer default');
+      }
       
       // Set Puppeteer to use its default Chrome discovery
       launchOptions.args.push('--no-sandbox');
@@ -44,8 +62,6 @@ export class BrowserManager {
       launchOptions.args.push('--disable-background-timer-throttling');
       launchOptions.args.push('--disable-backgrounding-occluded-windows');
       launchOptions.args.push('--disable-renderer-backgrounding');
-      
-      console.log('🔧 Using Puppeteer default Chrome discovery');
     }
 
     this.browser = await puppeteer.launch(launchOptions);
