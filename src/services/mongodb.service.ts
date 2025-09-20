@@ -68,6 +68,31 @@ export class MongoDBService {
     }
   }
 
+  // Get unique stocks from holdings across all funds
+  async getUniqueStocksFromHoldings(limit: number = 0): Promise<Array<{ stockName: string; stockSymbol: string; sector: string }>> {
+    try {
+      const pipeline: any[] = [
+        {
+          $group: {
+            _id: { sym: '$stockSymbol', name: '$stockName' },
+            stockName: { $first: '$stockName' },
+            stockSymbol: { $first: '$stockSymbol' },
+            sector: { $first: '$sector' }
+          }
+        },
+        { $project: { _id: 0, stockName: 1, stockSymbol: 1, sector: 1 } },
+        { $sort: { stockName: 1 } }
+      ];
+      if (limit && limit > 0) pipeline.push({ $limit: limit });
+
+      const rows = await Holding.aggregate(pipeline);
+      return rows as Array<{ stockName: string; stockSymbol: string; sector: string }>;
+    } catch (error) {
+      console.error('❌ Error getting unique stocks from holdings:', error);
+      return [];
+    }
+  }
+
   async saveHoldings(fundId: string, holdings: StockHolding[]): Promise<IHolding[]> {
     try {
       if (!holdings || holdings.length === 0) {
