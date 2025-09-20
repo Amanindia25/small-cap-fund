@@ -5,7 +5,7 @@
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc",
-    "start": "node dist/api/server.js",
+    "start": "node dist/index.js",
     "dev": "concurrently -n api,scraper -c blue,magenta \"npm:dev:api\" \"npm:dev:scrape\"",
     "dev:api": "ts-node src/api/server.ts",
     "dev:scrape": "wait-on http://localhost:5000/api/health && ts-node src/index.ts",
