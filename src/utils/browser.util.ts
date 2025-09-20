@@ -33,37 +33,65 @@ export class BrowserManager {
 
     // Add Render-specific configuration
     if (process.env.NODE_ENV === 'production') {
-      // Force Puppeteer to use the installed Chrome with proper permissions
       const fs = require('fs');
-      const path = require('path');
+      const { execSync } = require('child_process');
       
-      const chromePath = '/opt/render/.cache/puppeteer/chrome/linux-140.0.7339.80/chrome-linux64/chrome';
+      // Try multiple browser options
+      const browserPaths = [
+        '/usr/bin/chromium-browser',
+        '/usr/bin/chromium',
+        '/usr/bin/google-chrome-stable',
+        '/usr/bin/google-chrome'
+      ];
       
-      console.log(`🔍 Checking Chrome at: ${chromePath}`);
-      console.log(`🔍 Chrome exists: ${fs.existsSync(chromePath)}`);
+      let browserFound = false;
       
-      if (fs.existsSync(chromePath)) {
-        // Make Chrome executable
-        try {
-          fs.chmodSync(chromePath, '755');
-          console.log('✅ Made Chrome executable');
-        } catch (error) {
-          console.log('⚠️ Could not change Chrome permissions:', error.message);
-        }
-        
-        launchOptions.executablePath = chromePath;
-        console.log(`🔧 Using Chrome at: ${chromePath}`);
-      } else {
-        console.log('⚠️ Chrome not found, using Puppeteer default');
-        // Try to find Chrome in the directory
-        const chromeDir = '/opt/render/.cache/puppeteer/chrome/linux-140.0.7339.80/chrome-linux64/';
-        if (fs.existsSync(chromeDir)) {
-          const files = fs.readdirSync(chromeDir);
-          console.log(`🔍 Files in Chrome directory: ${files.join(', ')}`);
+      // Check for system browsers first
+      for (const browserPath of browserPaths) {
+        if (fs.existsSync(browserPath)) {
+          launchOptions.executablePath = browserPath;
+          console.log(`✅ Found system browser: ${browserPath}`);
+          browserFound = true;
+          break;
         }
       }
       
-      // Set Puppeteer to use its default Chrome discovery
+      // If no system browser, install Chrome at runtime
+      if (!browserFound) {
+        console.log('🔧 No system browser found, installing Chrome at runtime...');
+        try {
+          execSync('npx puppeteer browsers install chrome', { stdio: 'inherit' });
+          console.log('✅ Chrome installed at runtime');
+          
+          // Try to find the installed Chrome
+          const possibleChromePaths = [
+            '/opt/render/.cache/puppeteer/chrome/linux-140.0.7339.80/chrome-linux64/chrome',
+            '/opt/render/.cache/puppeteer/chrome/linux-140.0.7339.80/chrome-linux64/chrome-linux64/chrome'
+          ];
+          
+          for (const chromePath of possibleChromePaths) {
+            if (fs.existsSync(chromePath)) {
+              try {
+                fs.chmodSync(chromePath, '755');
+                launchOptions.executablePath = chromePath;
+                console.log(`✅ Using runtime Chrome: ${chromePath}`);
+                browserFound = true;
+                break;
+              } catch (error) {
+                console.log(`⚠️ Could not make Chrome executable: ${error.message}`);
+              }
+            }
+          }
+        } catch (error) {
+          console.log(`⚠️ Failed to install Chrome at runtime: ${error.message}`);
+        }
+      }
+      
+      if (!browserFound) {
+        console.log('⚠️ No browser found, using Puppeteer default');
+      }
+      
+      // Add Render-compatible arguments
       launchOptions.args.push('--no-sandbox');
       launchOptions.args.push('--disable-setuid-sandbox');
       launchOptions.args.push('--disable-dev-shm-usage');
