@@ -14,7 +14,18 @@ function startAPIServer() {
   const app = express();
   const PORT = process.env.PORT || 5000;
 
-  app.use(cors());
+  // CORS configuration
+  const corsOptions = {
+    origin: [
+      'http://localhost:3000',
+      'https://small-cap-fund-frontend.vercel.app',
+      'https://small-cap-fund-frontend.vercel.app/'
+    ],
+    credentials: true,
+    optionsSuccessStatus: 200
+  };
+  
+  app.use(cors(corsOptions));
   app.use(express.json());
 
   // Health check endpoint
@@ -22,9 +33,109 @@ function startAPIServer() {
     res.json({ status: 'OK', message: 'Small Cap Fund API is running' });
   });
 
-  // Basic API endpoints
-  app.get('/api/funds', (req, res) => {
-    res.json({ message: 'Funds endpoint - coming soon' });
+  // Import models for API endpoints
+  const { Fund } = require('./models/Fund');
+  const { FundSnapshot } = require('./models/FundSnapshot');
+  const { Holding } = require('./models/Holding');
+
+  // Get all funds
+  app.get('/api/funds', async (req, res) => {
+    try {
+      const funds = await Fund.find().sort({ createdAt: -1 });
+      res.json({
+        success: true,
+        count: funds.length,
+        data: funds
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        message: 'Error fetching funds',
+        error: error.message
+      });
+    }
+  });
+
+  // Get specific fund by ID
+  app.get('/api/funds/:id', async (req, res) => {
+    try {
+      const fund = await Fund.findById(req.params.id);
+      if (!fund) {
+        return res.status(404).json({
+          success: false,
+          message: 'Fund not found'
+        });
+      }
+      res.json({
+        success: true,
+        data: fund
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        message: 'Error fetching fund',
+        error: error.message
+      });
+    }
+  });
+
+  // Get fund snapshots
+  app.get('/api/funds/:id/snapshots', async (req, res) => {
+    try {
+      const snapshots = await FundSnapshot.find({ fundId: req.params.id })
+        .sort({ date: -1 })
+        .limit(30);
+      res.json({
+        success: true,
+        count: snapshots.length,
+        data: snapshots
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        message: 'Error fetching fund snapshots',
+        error: error.message
+      });
+    }
+  });
+
+  // Get fund holdings
+  app.get('/api/funds/:id/holdings', async (req, res) => {
+    try {
+      const holdings = await Holding.find({ fundId: req.params.id })
+        .sort({ percentage: -1 });
+      res.json({
+        success: true,
+        count: holdings.length,
+        data: holdings
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        message: 'Error fetching fund holdings',
+        error: error.message
+      });
+    }
+  });
+
+  // Get latest fund data
+  app.get('/api/funds/latest', async (req, res) => {
+    try {
+      const latestFunds = await Fund.find()
+        .sort({ updatedAt: -1 })
+        .limit(20);
+      res.json({
+        success: true,
+        count: latestFunds.length,
+        data: latestFunds
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        message: 'Error fetching latest funds',
+        error: error.message
+      });
+    }
   });
 
   app.listen(PORT, () => {
