@@ -1290,7 +1290,7 @@
       "numberOfDebtHoldings": 62,
       "cashHolding": 2.42
     },
-    "planType": "Direct Plan",
+    "planType": "Regular Plan",
     "isSponsored": false,
     "individualHoldings": [
       {
@@ -1868,7 +1868,7 @@
       "numberOfDebtHoldings": 62,
       "cashHolding": 2.42
     },
-    "planType": "Regular Plan",
+    "planType": "Direct Plan",
     "isSponsored": false,
     "individualHoldings": [
       {
@@ -2445,7 +2445,7 @@
       "debtHolding": 5.08,
       "numberOfDebtHoldings": 235
     },
-    "planType": "Regular Plan",
+    "planType": "Direct Plan",
     "isSponsored": false,
     "individualHoldings": [
       {
@@ -4579,7 +4579,7 @@
       "debtHolding": 5.08,
       "numberOfDebtHoldings": 235
     },
-    "planType": "Direct Plan",
+    "planType": "Regular Plan",
     "isSponsored": false,
     "individualHoldings": [
       {
@@ -6714,7 +6714,7 @@
       "numberOfDebtHoldings": 98,
       "cashHolding": 5.74
     },
-    "planType": "Regular Plan",
+    "planType": "Direct Plan",
     "isSponsored": false,
     "individualHoldings": [
       {
@@ -7616,7 +7616,7 @@
       "numberOfDebtHoldings": 98,
       "cashHolding": 5.74
     },
-    "planType": "Direct Plan",
+    "planType": "Regular Plan",
     "isSponsored": false,
     "individualHoldings": [
       {
@@ -8509,7 +8509,7 @@
   },
   {
     "schemeName": "Bank of India",
-    "crisilRating": 3,
+    "crisilRating": 2,
     "portfolio": {
       "turnoverRatio": 44,
       "equityHolding": 92.24,
@@ -8518,7 +8518,7 @@
       "numberOfDebtHoldings": 77,
       "cashHolding": 6.81
     },
-    "planType": "Direct Plan",
+    "planType": "Regular Plan",
     "isSponsored": false,
     "individualHoldings": [
       {
@@ -9222,7 +9222,7 @@
   },
   {
     "schemeName": "Bank of India",
-    "crisilRating": 2,
+    "crisilRating": 3,
     "portfolio": {
       "turnoverRatio": 44,
       "equityHolding": 92.24,
@@ -9231,7 +9231,7 @@
       "numberOfDebtHoldings": 77,
       "cashHolding": 6.81
     },
-    "planType": "Regular Plan",
+    "planType": "Direct Plan",
     "isSponsored": false,
     "individualHoldings": [
       {
