@@ -15,7 +15,7 @@ export class BrowserManager {
       return this.browser;
     }
 
-    this.browser = await puppeteer.launch({
+    const launchOptions: any = {
       headless: this.config.headless,
       args: [
         '--no-sandbox',
@@ -29,7 +29,18 @@ export class BrowserManager {
         '--disable-features=VizDisplayCompositor',
         '--user-agent=' + this.config.userAgent
       ]
-    });
+    };
+
+    // Add Render-specific configuration
+    if (process.env.NODE_ENV === 'production') {
+      launchOptions.executablePath = process.env.PUPPETEER_EXECUTABLE_PATH || '/usr/bin/google-chrome-stable';
+      launchOptions.args.push('--single-process');
+      launchOptions.args.push('--disable-background-timer-throttling');
+      launchOptions.args.push('--disable-backgrounding-occluded-windows');
+      launchOptions.args.push('--disable-renderer-backgrounding');
+    }
+
+    this.browser = await puppeteer.launch(launchOptions);
 
     return this.browser;
   }
