@@ -44,6 +44,7 @@ export class BrowserManager {
       await page.setUserAgent(this.config.userAgent);
       await page.setViewport({ width: 1920, height: 1080 });
       page.setDefaultTimeout(this.config.timeout);
+      page.setDefaultNavigationTimeout(Math.max(this.config.timeout, 120000));
       return page;
     };
 

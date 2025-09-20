@@ -21,25 +21,17 @@ export class DailySchedulerService {
   startDailyTasks() {
     console.log('🕐 Starting daily scheduler tasks...');
 
-    // Run full scraping every day at 10 AM
-    cron.schedule('0 10 * * *', async () => {
-      console.log('🔄 Starting daily scraping...');
-      // In headless servers this should remain headless; for local demo, set env
+    // Run full scraping every day at 6:00 AM, then immediately run portfolio analysis
+    cron.schedule('0 6 * * *', async () => {
+      console.log('🔄 Starting daily scraping (6:00 AM)...');
       const showBrowser = process.env.SHOW_BROWSER === 'true';
       await this.runDailyScraping({ showBrowser });
-    });
 
-    // Run incremental update every day at 10:30 AM
-    cron.schedule('30 10 * * *', async () => {
-      console.log('🔄 Starting incremental update...');
-      await this.runIncrementalUpdate();
-    });
-
-    // Run portfolio analysis every day at 11 AM
-    cron.schedule('0 11 * * *', async () => {
-      console.log('📊 Starting daily portfolio analysis...');
+      console.log('📊 Running portfolio analysis immediately after scraping...');
       await this.runDailyPortfolioAnalysis();
     });
+
+    // Incremental update removed per requirement
 
     console.log('✅ Daily scheduler tasks configured');
   }
@@ -47,14 +39,11 @@ export class DailySchedulerService {
   private async runDailyPortfolioAnalysis() {
     try {
       console.log('📈 Running daily portfolio analysis...');
-      
       // Create daily snapshots for all funds
       await this.historicalDataService.createDailySnapshots();
-      
       // Detect portfolio changes
       const funds = await Fund.find({}) as IFund[];
       let totalChanges = 0;
-      
       for (const fund of funds) {
         try {
           const changes = await this.historicalDataService.detectPortfolioChanges((fund._id as any).toString());
@@ -66,7 +55,6 @@ export class DailySchedulerService {
           console.error(`❌ Error analyzing ${fund.name}:`, error);
         }
       }
-
       console.log(`✅ Daily portfolio analysis completed - ${totalChanges} total changes detected`);
     } catch (error) {
       console.error('❌ Error in daily portfolio analysis:', error);

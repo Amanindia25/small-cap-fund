@@ -89,6 +89,10 @@ export class MongoDBService {
         sector: holding.sector,
         marketValue: holding.marketValue,
         quantity: holding.quantity,
+        oneMonthChange: holding.oneMonthChange,
+        oneYearHighest: holding.oneYearHighest,
+        oneYearLowest: holding.oneYearLowest,
+        quantityChange: holding.quantityChange,
         date: new Date()
       }));
 
@@ -213,6 +217,86 @@ export class MongoDBService {
         topSectors: [],
         averageHoldingsPerFund: 0
       };
+    }
+  }
+
+  // Rewrite holdings for a fund from the embedded fund.individualHoldings
+  async rewriteHoldingsFromFund(fundId: string): Promise<IHolding[]> {
+    try {
+      const fund = await Fund.findById(fundId).lean();
+      if (!fund || !Array.isArray((fund as any).individualHoldings)) {
+        return [];
+      }
+      const sourceHoldings = (fund as any).individualHoldings as StockHolding[];
+      return await this.saveHoldings(fundId, sourceHoldings);
+    } catch (error) {
+      console.error(`❌ Error rewriting holdings for fund ${fundId}:`, error);
+      return [];
+    }
+  }
+
+  // Rewrite holdings for all funds
+  async rewriteAllHoldings(): Promise<{ updated: number }> {
+    try {
+      const funds = await Fund.find({}, { _id: 1 }).lean();
+      let updated = 0;
+      for (const f of funds) {
+        const res = await this.rewriteHoldingsFromFund((f._id as unknown as mongoose.Types.ObjectId).toString());
+        if (res.length > 0) updated += 1;
+      }
+      return { updated };
+    } catch (error) {
+      console.error('❌ Error rewriting holdings for all funds:', error);
+      return { updated: 0 };
+    }
+  }
+
+  // Remove duplicate funds (keep the one with most recent updatedAt)
+  async removeDuplicateFunds(): Promise<{ removed: number }> {
+    try {
+      console.log('🧹 Starting duplicate fund cleanup...');
+      
+      // Group funds by name and planType
+      const funds = await Fund.find({}).lean();
+      const fundGroups = new Map<string, any[]>();
+      
+      for (const fund of funds) {
+        const key = `${fund.name}|${fund.planType}`;
+        if (!fundGroups.has(key)) {
+          fundGroups.set(key, []);
+        }
+        fundGroups.get(key)!.push(fund);
+      }
+      
+      let removed = 0;
+      
+      // For each group with duplicates, keep the most recent one
+      for (const [key, group] of fundGroups) {
+        if (group.length > 1) {
+          console.log(`Found ${group.length} duplicates for: ${key}`);
+          
+          // Sort by updatedAt (most recent first)
+          group.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
+          
+          // Keep the first (most recent), remove the rest
+          const toKeep = group[0];
+          const toRemove = group.slice(1);
+          
+          for (const duplicate of toRemove) {
+            // Also remove associated holdings
+            await Holding.deleteMany({ fundId: duplicate._id });
+            await Fund.deleteOne({ _id: duplicate._id });
+            removed++;
+            console.log(`Removed duplicate fund: ${duplicate.name} (${duplicate.planType}) - ${duplicate._id}`);
+          }
+        }
+      }
+      
+      console.log(`✅ Cleanup complete. Removed ${removed} duplicate funds.`);
+      return { removed };
+    } catch (error) {
+      console.error('❌ Error removing duplicate funds:', error);
+      return { removed: 0 };
     }
   }
 }
