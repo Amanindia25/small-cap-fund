@@ -6,7 +6,6 @@
   "scripts": {
     "build": "tsc",
     "start": "node dist/index.js",
-    "postinstall": "npx puppeteer browsers install chrome",
     "dev": "concurrently -n api,scraper -c blue,magenta \"npm:dev:api\" \"npm:dev:scrape\"",
     "dev:api": "ts-node src/api/server.ts",
     "dev:scrape": "wait-on http://localhost:5000/api/health && ts-node src/index.ts",
