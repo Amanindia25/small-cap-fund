@@ -73,6 +73,119 @@ export class PortfolioChangeService {
     }
   }
 
+  /**
+   * Compare two snapshots and compute portfolio changes.
+   * If fromDate/toDate are not provided, the latest two snapshots are compared.
+   */
+  async compareSnapshots(
+    fundId: string,
+    fromDate?: Date,
+    toDate?: Date
+  ): Promise<IPortfolioChange[]> {
+    try {
+      const fundObjectId = new mongoose.Types.ObjectId(fundId);
+
+      let baseSnapshot: IDailySnapshot | null = null;
+      let targetSnapshot: IDailySnapshot | null = null;
+
+      if (fromDate && toDate) {
+        // Find snapshots for the given dates (closest on or after start of day)
+        const startA = new Date(fromDate.getFullYear(), fromDate.getMonth(), fromDate.getDate());
+        const endA = new Date(startA);
+        endA.setDate(endA.getDate() + 1);
+
+        const startB = new Date(toDate.getFullYear(), toDate.getMonth(), toDate.getDate());
+        const endB = new Date(startB);
+        endB.setDate(endB.getDate() + 1);
+
+        [baseSnapshot, targetSnapshot] = await Promise.all([
+          DailySnapshot.findOne({ fundId: fundObjectId, date: { $gte: startA, $lt: endA } }).sort({ date: -1 }),
+          DailySnapshot.findOne({ fundId: fundObjectId, date: { $gte: startB, $lt: endB } }).sort({ date: -1 })
+        ]);
+      } else {
+        // Latest two snapshots
+        const latestTwo = await DailySnapshot.find({ fundId: fundObjectId })
+          .sort({ date: -1 })
+          .limit(2);
+        targetSnapshot = latestTwo[0] || null;
+        baseSnapshot = latestTwo[1] || null;
+      }
+
+      if (!baseSnapshot || !targetSnapshot) {
+        return [];
+      }
+
+      const changes: IPortfolioChange[] = [];
+      const targetDate = targetSnapshot.date;
+
+      const baseMap = new Map(
+        (baseSnapshot.topHoldings || []).map(h => [h.stockSymbol, h])
+      );
+      const targetMap = new Map(
+        (targetSnapshot.topHoldings || []).map(h => [h.stockSymbol, h])
+      );
+
+      // Additions
+      for (const [symbol, cur] of targetMap) {
+        if (!baseMap.has(symbol)) {
+          changes.push({
+            fundId: fundObjectId,
+            date: targetDate,
+            changeType: 'ADDITION',
+            stockSymbol: symbol,
+            stockName: cur.stockName,
+            newPercentage: cur.percentage,
+            changeAmount: cur.percentage,
+            sector: cur.sector,
+            significance: this.calculateSignificance(cur.percentage)
+          } as IPortfolioChange);
+        }
+      }
+
+      // Exits
+      for (const [symbol, prev] of baseMap) {
+        if (!targetMap.has(symbol)) {
+          changes.push({
+            fundId: fundObjectId,
+            date: targetDate,
+            changeType: 'EXIT',
+            stockSymbol: symbol,
+            stockName: prev.stockName,
+            oldPercentage: prev.percentage,
+            changeAmount: -prev.percentage,
+            sector: prev.sector,
+            significance: this.calculateSignificance(prev.percentage)
+          } as IPortfolioChange);
+        }
+      }
+
+      // Increases / Decreases
+      for (const [symbol, cur] of targetMap) {
+        const prev = baseMap.get(symbol);
+        if (!prev) continue;
+        const delta = cur.percentage - prev.percentage;
+        if (Math.abs(delta) <= 0.1) continue; // ignore tiny noise
+        changes.push({
+          fundId: fundObjectId,
+          date: targetDate,
+          changeType: delta > 0 ? 'INCREASE' : 'DECREASE',
+          stockSymbol: symbol,
+          stockName: cur.stockName,
+          oldPercentage: prev.percentage,
+          newPercentage: cur.percentage,
+          changeAmount: delta,
+          sector: cur.sector,
+          significance: this.calculateSignificance(Math.abs(delta))
+        } as IPortfolioChange);
+      }
+
+      return changes.sort((a, b) => Math.abs(b.changeAmount) - Math.abs(a.changeAmount));
+    } catch (error) {
+      console.error(`Error comparing snapshots for fund ${fundId}:`, error);
+      return [];
+    }
+  }
+
   async detectPortfolioChanges(fundId: string): Promise<IPortfolioChange[]> {
     try {
       // Get today's and yesterday's snapshots
@@ -209,6 +322,17 @@ export class PortfolioChangeService {
       .sort({ date: -1, changeAmount: -1 });
     } catch (error) {
       console.error('Error fetching significant changes:', error);
+      return [];
+    }
+  }
+
+  async getDailyChanges(fundId: string): Promise<IPortfolioChange[]> {
+    try {
+      // Compare latest two available snapshots (robust even if yesterday is missing)
+      const changes = await this.compareSnapshots(fundId);
+      return changes;
+    } catch (error) {
+      console.error(`Error fetching daily changes for fund ${fundId}:`, error);
       return [];
     }
   }

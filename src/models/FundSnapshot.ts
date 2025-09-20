@@ -50,20 +50,20 @@ const FundSnapshotSchema = new Schema<IFundSnapshot>({
   planType: { type: String, required: true },
   isSponsored: { type: Boolean, default: false },
   portfolio: {
-    turnoverRatio: { type: Number, required: true },
-    equityHolding: { type: Number, required: true },
-    numberOfStocks: { type: Number, required: true },
-    debtHolding: { type: Number, required: true },
-    numberOfDebtHoldings: { type: Number, required: true },
-    cashHolding: { type: Number },
-    otherHolding: { type: Number }
+    turnoverRatio: { type: Number, default: 0 },
+    equityHolding: { type: Number, default: 0 },
+    numberOfStocks: { type: Number, default: 0 },
+    debtHolding: { type: Number, default: 0 },
+    numberOfDebtHoldings: { type: Number, default: 0 },
+    cashHolding: { type: Number, default: 0 },
+    otherHolding: { type: Number, default: 0 }
   },
   returns: {
-    oneMonth: { type: Number, required: true },
-    threeMonth: { type: Number, required: true },
-    sixMonth: { type: Number, required: true },
-    oneYear: { type: Number, required: true },
-    threeYear: { type: Number, required: true }
+    oneMonth: { type: Number, default: 0 },
+    threeMonth: { type: Number, default: 0 },
+    sixMonth: { type: Number, default: 0 },
+    oneYear: { type: Number, default: 0 },
+    threeYear: { type: Number, default: 0 }
   }
 }, {
   timestamps: true

@@ -15,14 +15,15 @@ export class DailyScraperService {
   private statusService: ScrapingStatusService;
 
   constructor() {
-    const config: ScrapingConfig = {
+    // fundScraper will be (re)created per run to allow toggling headless at runtime
+    const defaultConfig: ScrapingConfig = {
       url: 'https://www.moneycontrol.com/mutual-funds/performance-tracker/portfolioassets/small-cap-fund.html',
       headless: true,
       timeout: 30000,
       delay: 1000,
       userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
     };
-    const browserManager = new BrowserManager(config);
+    const browserManager = new BrowserManager(defaultConfig);
     this.fundScraper = new FundScraperService(browserManager);
     this.mongoService = new MongoDBService();
     this.portfolioChangeService = new PortfolioChangeService();
@@ -30,7 +31,7 @@ export class DailyScraperService {
     this.statusService = ScrapingStatusService.getInstance();
   }
 
-  async runDailyScraping(): Promise<{
+  async runDailyScraping(options?: { showBrowser?: boolean }): Promise<{
     success: boolean;
     totalFunds: number;
     updatedFunds: number;
@@ -44,6 +45,18 @@ export class DailyScraperService {
     let newFunds = 0;
 
     try {
+      // Rebuild scraper with runtime headless flag (env or explicit option)
+      const showBrowser = options?.showBrowser ?? (process.env.SHOW_BROWSER === 'true');
+      const config: ScrapingConfig = {
+        url: 'https://www.moneycontrol.com/mutual-funds/performance-tracker/portfolioassets/small-cap-fund.html',
+        headless: showBrowser ? false : true,
+        timeout: 30000,
+        delay: 1000,
+        userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+      };
+      // Use a single BrowserManager instance for the whole run
+      const browserManager = new BrowserManager(config);
+      this.fundScraper = new FundScraperService(browserManager);
       // Step 1: Scrape fresh data from Moneycontrol
       console.log('📊 Scraping fresh data from Moneycontrol...');
       this.statusService.updateProgress('Scraping data from Moneycontrol...', 0);
@@ -57,13 +70,18 @@ export class DailyScraperService {
       console.log(`✅ Scraped ${scrapingResult.data.length} funds from website`);
       this.statusService.startScraping(scrapingResult.data.length);
 
-      // Step 2: Process and save each fund
-      this.statusService.updateProgress('Processing and saving funds...', 0);
+      // Step 2: Enhance each fund with holdings (single browser, single main page)
+      this.statusService.updateProgress('Enhancing funds with holdings...', 0);
       let processedCount = 0;
-      
+
+      const mainPage = await browserManager.createPage();
+      await browserManager.navigateToPage(mainPage, config.url);
+      await browserManager.delay(2000);
+
       for (const fundData of scrapingResult.data) {
         try {
-          const result = await this.processFundData(fundData);
+          const enhanced = await this.fundScraper.scrapeFundWithHoldings(fundData, mainPage);
+          const result = await this.processFundData(enhanced);
           if (result.isNew) {
             newFunds++;
           } else {
@@ -71,7 +89,7 @@ export class DailyScraperService {
           }
           processedCount++;
           this.statusService.updateProgress(`Processing: ${fundData.schemeName}`, processedCount);
-          console.log(`✅ Processed: ${fundData.schemeName}`);
+          console.log(`✅ Processed with holdings: ${fundData.schemeName}`);
         } catch (error) {
           const errorMsg = `Error processing ${fundData.schemeName}: ${error}`;
           console.error(`❌ ${errorMsg}`);
@@ -79,6 +97,8 @@ export class DailyScraperService {
           this.statusService.addError(errorMsg);
         }
       }
+
+      try { await mainPage.close(); } catch {}
 
       // Step 3: Create daily snapshots for all funds
       console.log('📸 Creating daily snapshots...');
