@@ -33,37 +33,19 @@ export class BrowserManager {
 
     // Add Render-specific configuration
     if (process.env.NODE_ENV === 'production') {
-      // Try to find Chrome in common locations
-      const fs = require('fs');
-      const path = require('path');
+      // Clear any existing executablePath to force Puppeteer to find Chrome
+      delete launchOptions.executablePath;
       
-      const possiblePaths = [
-        '/opt/render/.cache/puppeteer/chrome/linux-140.0.7339.80/chrome-linux64/chrome',
-        '/opt/render/.cache/puppeteer/chrome/linux-140.0.7339.80/chrome-linux64/chrome-linux64/chrome',
-        '/usr/bin/google-chrome-stable',
-        '/usr/bin/chromium-browser',
-        '/usr/bin/chromium'
-      ];
-      
-      let chromeFound = false;
-      for (const chromePath of possiblePaths) {
-        if (chromePath && fs.existsSync(chromePath)) {
-          launchOptions.executablePath = chromePath;
-          console.log(`✅ Found Chrome at: ${chromePath}`);
-          chromeFound = true;
-          break;
-        }
-      }
-      
-      if (!chromeFound) {
-        console.log('⚠️ Chrome not found in common paths, using Puppeteer default');
-        // Don't set executablePath - let Puppeteer handle it
-      }
-      
+      // Set Puppeteer to use its default Chrome discovery
+      launchOptions.args.push('--no-sandbox');
+      launchOptions.args.push('--disable-setuid-sandbox');
+      launchOptions.args.push('--disable-dev-shm-usage');
       launchOptions.args.push('--single-process');
       launchOptions.args.push('--disable-background-timer-throttling');
       launchOptions.args.push('--disable-backgrounding-occluded-windows');
       launchOptions.args.push('--disable-renderer-backgrounding');
+      
+      console.log('🔧 Using Puppeteer default Chrome discovery');
     }
 
     this.browser = await puppeteer.launch(launchOptions);
