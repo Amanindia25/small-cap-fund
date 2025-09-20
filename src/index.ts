@@ -13,7 +13,7 @@ async function main() {
   // Configuration
   const config: ScrapingConfig = {
     url: 'https://www.moneycontrol.com/mutual-funds/performance-tracker/portfolioassets/small-cap-fund.html',
-    headless: false, // Always visible for user to see scraping process
+    headless: process.env.NODE_ENV === 'production' ? true : false, // Headless in production
     timeout: 60000,
     delay: 1000,
     userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'

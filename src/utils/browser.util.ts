@@ -33,7 +33,30 @@ export class BrowserManager {
 
     // Add Render-specific configuration
     if (process.env.NODE_ENV === 'production') {
-      launchOptions.executablePath = process.env.PUPPETEER_EXECUTABLE_PATH || '/usr/bin/google-chrome-stable';
+      // Try to find Chrome in common locations
+      const fs = require('fs');
+      const path = require('path');
+      
+      const possiblePaths = [
+        process.env.PUPPETEER_EXECUTABLE_PATH,
+        '/opt/render/.cache/puppeteer/chrome/linux-140.0.7339.80/chrome-linux64/chrome',
+        '/usr/bin/google-chrome-stable',
+        '/usr/bin/chromium-browser',
+        '/usr/bin/chromium'
+      ];
+      
+      for (const chromePath of possiblePaths) {
+        if (chromePath && fs.existsSync(chromePath)) {
+          launchOptions.executablePath = chromePath;
+          console.log(`✅ Found Chrome at: ${chromePath}`);
+          break;
+        }
+      }
+      
+      if (!launchOptions.executablePath) {
+        console.log('⚠️ Chrome not found, using default Puppeteer configuration');
+      }
+      
       launchOptions.args.push('--single-process');
       launchOptions.args.push('--disable-background-timer-throttling');
       launchOptions.args.push('--disable-backgrounding-occluded-windows');
