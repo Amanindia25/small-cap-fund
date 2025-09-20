@@ -39,6 +39,9 @@ export class BrowserManager {
       
       const chromePath = '/opt/render/.cache/puppeteer/chrome/linux-140.0.7339.80/chrome-linux64/chrome';
       
+      console.log(`🔍 Checking Chrome at: ${chromePath}`);
+      console.log(`🔍 Chrome exists: ${fs.existsSync(chromePath)}`);
+      
       if (fs.existsSync(chromePath)) {
         // Make Chrome executable
         try {
@@ -52,6 +55,12 @@ export class BrowserManager {
         console.log(`🔧 Using Chrome at: ${chromePath}`);
       } else {
         console.log('⚠️ Chrome not found, using Puppeteer default');
+        // Try to find Chrome in the directory
+        const chromeDir = '/opt/render/.cache/puppeteer/chrome/linux-140.0.7339.80/chrome-linux64/';
+        if (fs.existsSync(chromeDir)) {
+          const files = fs.readdirSync(chromeDir);
+          console.log(`🔍 Files in Chrome directory: ${files.join(', ')}`);
+        }
       }
       
       // Set Puppeteer to use its default Chrome discovery
