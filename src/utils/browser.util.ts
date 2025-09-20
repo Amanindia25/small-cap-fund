@@ -38,7 +38,6 @@ export class BrowserManager {
       const path = require('path');
       
       const possiblePaths = [
-        process.env.PUPPETEER_EXECUTABLE_PATH,
         '/opt/render/.cache/puppeteer/chrome/linux-140.0.7339.80/chrome-linux64/chrome',
         '/opt/render/.cache/puppeteer/chrome/linux-140.0.7339.80/chrome-linux64/chrome-linux64/chrome',
         '/usr/bin/google-chrome-stable',
@@ -46,18 +45,19 @@ export class BrowserManager {
         '/usr/bin/chromium'
       ];
       
+      let chromeFound = false;
       for (const chromePath of possiblePaths) {
         if (chromePath && fs.existsSync(chromePath)) {
           launchOptions.executablePath = chromePath;
           console.log(`✅ Found Chrome at: ${chromePath}`);
+          chromeFound = true;
           break;
         }
       }
       
-      if (!launchOptions.executablePath) {
-        console.log('⚠️ Chrome not found, using default Puppeteer configuration');
-        // Remove executablePath to let Puppeteer use its default
-        delete launchOptions.executablePath;
+      if (!chromeFound) {
+        console.log('⚠️ Chrome not found in common paths, using Puppeteer default');
+        // Don't set executablePath - let Puppeteer handle it
       }
       
       launchOptions.args.push('--single-process');
