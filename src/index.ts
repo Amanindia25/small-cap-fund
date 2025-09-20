@@ -56,89 +56,7 @@ function startAPIServer() {
     }
   });
 
-  // Get specific fund by ID
-  app.get('/api/funds/:id', async (req, res) => {
-    try {
-      const fund = await Fund.findById(req.params.id);
-      if (!fund) {
-        return res.status(404).json({
-          success: false,
-          message: 'Fund not found'
-        });
-      }
-      res.json({
-        success: true,
-        data: fund
-      });
-    } catch (error) {
-      res.status(500).json({
-        success: false,
-        message: 'Error fetching fund',
-        error: error.message
-      });
-    }
-  });
-
-  // Get fund snapshots
-  app.get('/api/funds/:id/snapshots', async (req, res) => {
-    try {
-      const snapshots = await FundSnapshot.find({ fundId: req.params.id })
-        .sort({ date: -1 })
-        .limit(30);
-      res.json({
-        success: true,
-        count: snapshots.length,
-        data: snapshots
-      });
-    } catch (error) {
-      res.status(500).json({
-        success: false,
-        message: 'Error fetching fund snapshots',
-        error: error.message
-      });
-    }
-  });
-
-  // Get fund holdings
-  app.get('/api/funds/:id/holdings', async (req, res) => {
-    try {
-      const holdings = await Holding.find({ fundId: req.params.id })
-        .sort({ percentage: -1 });
-      res.json({
-        success: true,
-        count: holdings.length,
-        data: holdings
-      });
-    } catch (error) {
-      res.status(500).json({
-        success: false,
-        message: 'Error fetching fund holdings',
-        error: error.message
-      });
-    }
-  });
-
-  // Get latest fund data
-  app.get('/api/funds/latest', async (req, res) => {
-    try {
-      const latestFunds = await Fund.find()
-        .sort({ updatedAt: -1 })
-        .limit(20);
-      res.json({
-        success: true,
-        count: latestFunds.length,
-        data: latestFunds
-      });
-    } catch (error) {
-      res.status(500).json({
-        success: false,
-        message: 'Error fetching latest funds',
-        error: error.message
-      });
-    }
-  });
-
-  // Get fund holdings with date filter
+  // Get fund holdings (used by frontend)
   app.get('/api/funds/:id/holdings', async (req, res) => {
     try {
       const { id } = req.params;
@@ -184,86 +102,6 @@ function startAPIServer() {
     }
   });
 
-  // Get top sectors
-  app.get('/api/sectors/top', async (req, res) => {
-    try {
-      const { limit = 10 } = req.query;
-      const pipeline = [
-        { $group: { _id: '$sector', count: { $sum: 1 } } },
-        { $sort: { count: -1 } },
-        { $limit: Number(limit) },
-        { $project: { sector: '$_id', count: 1, _id: 0 } }
-      ];
-      
-      const topSectors = await Holding.aggregate(pipeline);
-      res.json({
-        success: true,
-        data: topSectors
-      });
-    } catch (error) {
-      res.status(500).json({
-        success: false,
-        error: 'Failed to fetch sector data'
-      });
-    }
-  });
-
-  // Get database statistics
-  app.get('/api/stats', async (req, res) => {
-    try {
-      const totalFunds = await Fund.countDocuments();
-      const totalHoldings = await Holding.countDocuments();
-      const averageHoldingsPerFund = totalFunds > 0 ? totalHoldings / totalFunds : 0;
-      
-      const pipeline = [
-        { $group: { _id: '$sector', count: { $sum: 1 } } },
-        { $sort: { count: -1 } },
-        { $limit: 10 },
-        { $project: { sector: '$_id', count: 1, _id: 0 } }
-      ];
-      
-      const topSectors = await Holding.aggregate(pipeline);
-      
-      res.json({
-        success: true,
-        data: {
-          totalFunds,
-          totalHoldings,
-          averageHoldingsPerFund,
-          topSectors
-        }
-      });
-    } catch (error) {
-      res.status(500).json({
-        success: false,
-        error: 'Failed to fetch statistics'
-      });
-    }
-  });
-
-  // Get fund history
-  app.get('/api/funds/:id/history', async (req, res) => {
-    try {
-      const { id } = req.params;
-      const days = parseInt(req.query.days as string) || 30;
-      
-      const { FundSnapshot } = require('./models/FundSnapshot');
-      const history = await FundSnapshot.find({ fundId: id })
-        .sort({ date: -1 })
-        .limit(days);
-      
-      res.json({
-        success: true,
-        data: history,
-        count: history.length
-      });
-    } catch (error) {
-      res.status(500).json({
-        success: false,
-        error: 'Failed to get fund history'
-      });
-    }
-  });
 
   // Get portfolio changes
   app.get('/api/funds/:id/portfolio-changes', async (req, res) => {
@@ -294,63 +132,7 @@ function startAPIServer() {
     }
   });
 
-  // Get significant changes
-  app.get('/api/portfolio/significant-changes', async (req, res) => {
-    try {
-      const days = parseInt(req.query.days as string) || 7;
-      const { PortfolioChange } = require('./models/PortfolioChange');
-      
-      const changes = await PortfolioChange.find({
-        date: { $gte: new Date(Date.now() - days * 24 * 60 * 60 * 1000) },
-        changeType: { $in: ['added', 'removed', 'increased', 'decreased'] }
-      })
-      .sort({ date: -1 })
-      .limit(100);
-      
-      res.json({
-        success: true,
-        data: changes,
-        count: changes.length
-      });
-    } catch (error) {
-      res.status(500).json({
-        success: false,
-        error: 'Failed to get significant changes'
-      });
-    }
-  });
 
-  // Get stocks
-  app.get('/api/stocks', async (req, res) => {
-    try {
-      const { limit = 50, page = 1 } = req.query;
-      const skip = (Number(page) - 1) * Number(limit);
-      
-      const { Stock } = require('./models/Stock');
-      const stocks = await Stock.find()
-        .sort({ updatedAt: -1 })
-        .skip(skip)
-        .limit(Number(limit));
-      
-      const total = await Stock.countDocuments();
-      
-      res.json({
-        success: true,
-        data: stocks,
-        pagination: {
-          page: Number(page),
-          limit: Number(limit),
-          total,
-          pages: Math.ceil(total / Number(limit))
-        }
-      });
-    } catch (error) {
-      res.status(500).json({
-        success: false,
-        error: 'Failed to fetch stocks'
-      });
-    }
-  });
 
   // Get specific stock
   app.get('/api/stocks/:symbol', async (req, res) => {
@@ -378,6 +160,127 @@ function startAPIServer() {
     }
   });
 
+  // Import services for admin endpoints
+  const { ScrapingStatusService } = require('./services/scraping-status.service');
+  const { DailySchedulerService } = require('./services/daily-scheduler.service');
+  const { ScreenerScraperService } = require('./services/screener-scraper.service');
+
+  // Admin API endpoints
+  // Get scraping status
+  app.get('/api/admin/scraping-status', async (req, res) => {
+    try {
+      const statusService = ScrapingStatusService.getInstance();
+      const status = statusService.getStatus();
+      res.json({
+        success: true,
+        data: status
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        message: 'Error fetching scraping status',
+        error: error.message
+      });
+    }
+  });
+
+  // Get scraping progress
+  app.get('/api/admin/scraping-progress', async (req, res) => {
+    try {
+      const statusService = ScrapingStatusService.getInstance();
+      const status = statusService.getStatus();
+      res.json({
+        success: true,
+        data: status
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        message: 'Error fetching scraping progress',
+        error: error.message
+      });
+    }
+  });
+
+  // Trigger fund scraping
+  app.post('/api/admin/trigger-scraping', async (req, res) => {
+    try {
+      const showBrowser = req.query.showBrowser === 'true';
+      const schedulerService = new DailySchedulerService();
+      
+      // Start scraping in background
+      schedulerService.triggerDailyScraping({ showBrowser }).catch(error => {
+        console.error('Background scraping error:', error);
+      });
+      
+      res.json({
+        success: true,
+        message: 'Fund scraping started successfully'
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        message: 'Error starting fund scraping',
+        error: error.message
+      });
+    }
+  });
+
+  // Trigger portfolio analysis
+  app.post('/api/admin/trigger-analysis', async (req, res) => {
+    try {
+      const schedulerService = new DailySchedulerService();
+      
+      // Start analysis in background
+      schedulerService.triggerPortfolioAnalysis().catch(error => {
+        console.error('Background analysis error:', error);
+      });
+      
+      res.json({
+        success: true,
+        message: 'Portfolio analysis started successfully'
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        message: 'Error starting portfolio analysis',
+        error: error.message
+      });
+    }
+  });
+
+  // Trigger stock scraping
+  app.post('/api/admin/trigger-stock-scraping', async (req, res) => {
+    try {
+      const { Holding } = require('./models/Holding');
+      const screenerService = new ScreenerScraperService();
+      
+      // Get all unique stocks from holdings
+      const holdings = await Holding.find({}).distinct('stockName');
+      const stocks = holdings.map(name => ({
+        stockName: name,
+        stockSymbol: name.split(' ')[0], // Use first word as symbol
+        sector: 'Unknown'
+      }));
+      
+      // Start stock scraping in background
+      screenerService.scrapeStockDetails(stocks).catch(error => {
+        console.error('Background stock scraping error:', error);
+      });
+      
+      res.json({
+        success: true,
+        message: 'Stock scraping started successfully'
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        message: 'Error starting stock scraping',
+        error: error.message
+      });
+    }
+  });
+
   app.listen(PORT, () => {
     console.log(`🌐 API Server running on port ${PORT}`);
     console.log(`🔗 Health check: http://localhost:${PORT}/api/health`);
@@ -389,6 +292,12 @@ async function main() {
 
   // Start API Server first
   startAPIServer();
+
+  // If API_ONLY mode is enabled, just run the API server
+  if (process.env.API_ONLY === 'true') {
+    console.log('🌐 Running in API-only mode. Scraping disabled.');
+    return;
+  }
 
   // Configuration
   const config: ScrapingConfig = {
