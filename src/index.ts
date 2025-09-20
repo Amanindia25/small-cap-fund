@@ -4,11 +4,40 @@ import { MongoDBService } from './services/mongodb.service';
 import { DataProcessor } from './utils/data-processor.util';
 import { ScrapingConfig, FundData } from './types/fund.types';
 import { connectDB } from './config/database';
+import express from 'express';
+import cors from 'cors';
 // import { logger } from './utils/logger.util';
 // import { handleAsync, AppError } from './utils/error-handler.util';
 
+// Start API Server
+function startAPIServer() {
+  const app = express();
+  const PORT = process.env.PORT || 5000;
+
+  app.use(cors());
+  app.use(express.json());
+
+  // Health check endpoint
+  app.get('/api/health', (req, res) => {
+    res.json({ status: 'OK', message: 'Small Cap Fund API is running' });
+  });
+
+  // Basic API endpoints
+  app.get('/api/funds', (req, res) => {
+    res.json({ message: 'Funds endpoint - coming soon' });
+  });
+
+  app.listen(PORT, () => {
+    console.log(`🌐 API Server running on port ${PORT}`);
+    console.log(`🔗 Health check: http://localhost:${PORT}/api/health`);
+  });
+}
+
 async function main() {
   console.log('🚀 Starting Small Cap Fund Scraper...\n');
+
+  // Start API Server first
+  startAPIServer();
 
   // Configuration
   const config: ScrapingConfig = {
