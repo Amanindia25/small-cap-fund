@@ -511,7 +511,8 @@ async function main() {
     // Clean up
     console.log('\n🧹 Closing browser...');
     await browserManager.close();
-    console.log('✨ Done!');
+    console.log('✨ Scraping completed! API server continues running...');
+    console.log('🌐 API Server is still running and ready to serve requests');
   }
 }
 
