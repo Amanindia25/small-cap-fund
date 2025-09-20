@@ -217,7 +217,7 @@ const StockSchema = new Schema<IStock>({
 });
 
 // Create indexes for faster queries
-StockSchema.index({ stockSymbol: 1 });
+// Note: stockSymbol already has unique index from schema definition
 StockSchema.index({ stockName: 1 });
 StockSchema.index({ sector: 1 });
 StockSchema.index({ date: -1 });
