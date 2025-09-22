@@ -178,51 +178,8 @@ export class FundScraperService {
         }
       }
 
-      // Search for "india" to filter only India-related funds (run once)
-      if (!this.indiaFilterApplied) {
-        console.log('Filtering for India data...');
-        try {
-          // Use the correct selector for the portfolio search box
-          const searchBox = await page.$('input[type="search"]');
-          
-          if (searchBox) {
-            console.log('🔍 Found correct search box');
-            
-            // Get search box position and scroll to it
-            console.log('📜 Scrolling to search box...');
-            const box = await searchBox.boundingBox();
-            if (box) {
-              // Smoothly scroll to search box so the user sees motion
-              await this.slowScroll(page, Math.max(0, box.y - 200));
-            }
-            
-            console.log('👆 Clicking on search box...');
-            await searchBox.click();
-            await this.browserManager.delay(1000);
-            
-            console.log('🧹 Clearing search box...');
-            await searchBox.evaluate((el) => (el as HTMLInputElement).value = '');
-            await this.browserManager.delay(1000);
-            
-            console.log('✍️ Typing "india" in search box...');
-            await searchBox.type('india', { delay: 200 }); // Slower typing for visibility
-            await this.browserManager.delay(1000);
-            
-            // Press Enter to trigger search
-            console.log('🔍 Pressing Enter to trigger search...');
-            await searchBox.press('Enter');
-            await this.browserManager.delay(3000); // Wait for search results to load
-            console.log('✅ Applied India filter - you should see filtered results now!');
-            this.indiaFilterApplied = true;
-          } else {
-            console.log('❌ Search box not found, proceeding without filter');
-          }
-        } catch (error) {
-          console.log('Error applying India filter:', error);
-        }
-      } else {
-        console.log('ℹ️ India filter already applied earlier - skipping.');
-      }
+      // Skipping automatic "india" filter application as requested
+      console.log('ℹ️ Skipping India search filter during fund scraping');
 
       // Ensure both Direct and Regular Plans checkboxes are checked
       await this.ensureBothPlansChecked(page);
@@ -640,6 +597,9 @@ export class FundScraperService {
               .replace(/\s*-\s*direct\s*-\s*growth/gi, '')
               .replace(/\s*-\s*growth/gi, '')
               .trim();
+
+            // Build display name to store in DB/UI
+            const displayName = `${cleanFundName} - ${planType === 'Direct Plan' ? 'Direct Plan - ' : ''}Growth`;
             
             // Create a unique fund identifier that includes plan type
             const fundIdentifier = `${cleanFundName} (${planType})`;
@@ -749,7 +709,7 @@ export class FundScraperService {
             }
             
             const fund: FundData = {
-              schemeName: cleanFundName,
+              schemeName: displayName,
               crisilRating: crisilRating,
               portfolio: {
                 turnoverRatio: turnoverRatio,
@@ -833,9 +793,42 @@ export class FundScraperService {
             continue; // skip sponsored rows
           }
           
-          // More flexible matching - check if the base name is contained in the row
-          const isMatch = rowTextFull.toLowerCase().includes(baseName.toLowerCase()) && 
-                         (rowTextFull.includes('Direct') || rowTextFull.includes('Regular') || rowTextFull.includes('Growth'));
+          // More flexible matching - try multiple strategies
+          let isMatch = false;
+          
+          // Strategy 1: Exact base name match
+          if (rowTextFull.toLowerCase().includes(baseName.toLowerCase())) {
+            isMatch = true;
+            console.log(`✅ Strategy 1: Found base name match for: ${baseName}`);
+          }
+          
+          // Strategy 2: Try with common fund name variations
+          if (!isMatch) {
+            const fundVariations = [
+              baseName.replace(/fund$/i, '').trim(),
+              baseName.replace(/small cap fund$/i, '').trim(),
+              baseName.replace(/smallcap fund$/i, '').trim(),
+              baseName.replace(/fund$/i, 'fund').trim()
+            ];
+            
+            for (const variation of fundVariations) {
+              if (variation && rowTextFull.toLowerCase().includes(variation.toLowerCase())) {
+                isMatch = true;
+                console.log(`✅ Strategy 2: Found variation match for: ${variation}`);
+                break;
+              }
+            }
+          }
+          
+          // Strategy 3: Try partial matching for long fund names
+          if (!isMatch && baseName.length > 20) {
+            const words = baseName.toLowerCase().split(' ').filter(word => word.length > 3);
+            const matchingWords = words.filter(word => rowText.includes(word));
+            if (matchingWords.length >= Math.min(3, words.length)) {
+              isMatch = true;
+              console.log(`✅ Strategy 3: Found partial match with words: ${matchingWords.join(', ')}`);
+            }
+          }
           
           if (isMatch) {
             console.log(`✅ Found matching row ${i + 1} for fund: ${baseName}`);
@@ -854,7 +847,63 @@ export class FundScraperService {
 
       if (!linkHandle) {
         console.log(`⚠️ Could not find fund link for: ${fundName}`);
-        return { holdings: [] };
+        
+        // Add debug logging to help identify the issue
+        console.log(`🔍 DEBUG: Let's check what funds are actually available on the page...`);
+        const debugInfo = await page.evaluate(() => {
+          const rows = Array.from(document.querySelectorAll('tr')) as HTMLElement[];
+          const fundNames: string[] = [];
+          
+          for (let i = 0; i < Math.min(10, rows.length); i++) {
+            const row = rows[i];
+            const rowText = (row.textContent || '').trim();
+            if (rowText && !rowText.toLowerCase().includes('sponsored') && rowText.length > 50) {
+              fundNames.push(`Row ${i + 1}: ${rowText.substring(0, 150)}...`);
+            }
+          }
+          return fundNames;
+        });
+        
+        console.log(`📋 DEBUG: First 10 available fund rows:`);
+        debugInfo.forEach(info => console.log(`   ${info}`));
+        
+        // Try alternative approach - look for any clickable fund link
+        console.log(`🔄 Trying alternative approach - looking for any fund link...`);
+        const alternativeLink = await page.evaluate((searchName) => {
+          const baseName = searchName.replace(/\s*\(.*?\)$/, '').trim();
+          const links = Array.from(document.querySelectorAll('a[href*="/mutual-funds/"]')) as HTMLAnchorElement[];
+          
+          for (const link of links) {
+            const linkText = (link.textContent || '').trim();
+            if (linkText && linkText.toLowerCase().includes(baseName.toLowerCase().substring(0, 20))) {
+              console.log(`🔗 Found alternative link: ${linkText}`);
+              return link;
+            }
+          }
+          return null;
+        }, fundName);
+        
+        if (alternativeLink) {
+          console.log(`✅ Found alternative fund link, proceeding with scraping...`);
+          // Create a mock element handle for the alternative link
+          const altHandle = await page.evaluateHandle((searchName) => {
+            const baseName = searchName.replace(/\s*\(.*?\)$/, '').trim();
+            const links = Array.from(document.querySelectorAll('a[href*="/mutual-funds/"]')) as HTMLAnchorElement[];
+            
+            for (const link of links) {
+              const linkText = (link.textContent || '').trim();
+              if (linkText && linkText.toLowerCase().includes(baseName.toLowerCase().substring(0, 20))) {
+                return link;
+              }
+            }
+            return null;
+          }, fundName);
+          
+          linkHandle = altHandle.asElement() as ElementHandle<Element> | null;
+        } else {
+          console.log(`❌ No alternative fund link found either`);
+          return { holdings: [] };
+        }
       }
 
       console.log(`📜 Step 2: Scrolling to fund link and highlighting it...`);
@@ -1003,10 +1052,8 @@ export class FundScraperService {
       await this.browserManager.delay(500);
       console.log(`✅ Fund tab closed`);
       
-      // Re-apply India filter after returning to list (some sites reset filter)
-      console.log(`🔁 Re-applying India filter on main list...`);
-      await this.ensureIndiaFilterOnList(page, true); // Force reapply every time
-      console.log(`✅ India filter re-applied`);
+      // Skipping re-applying any search filter on the main list
+      console.log('ℹ️ Not re-applying India filter on main list');
       
       // Re-check Regular Plan checkbox after returning from fund tab
       console.log(`🔄 Re-checking Regular Plan checkbox after returning from fund tab...`);
