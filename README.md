@@ -1,4 +1,5 @@
 # Small Cap Mutual Fund Scraper
+Developer Name: Aman
 
 A TypeScript + Puppeteer scraper to extract small cap mutual fund data from Moneycontrol.
 
